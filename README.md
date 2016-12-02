@@ -12,4 +12,4 @@ In this case, the assumption is that the two time series are independent. To est
 ## HetBiv for 0-lag dependent (correlated) time series
 
 
-## HetBiv for n-lag dependent (correlated & cross-correlated) time series
+## HetBiv for n-lag dependent (cross-correlated) time series
