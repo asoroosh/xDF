@@ -16,3 +16,8 @@ In this case, the assumption is that the 0 lag versions of the two time series a
 The last version and most sophisticated version of HetBiv correction factor assumes that the time series are not only dependent in their 0-lag versions, but also there are dependency between lagged versions of the two time series. However, in this case it is essential to use the *curbing factors* to avoid over-estimation of dependencies in far lags. The provisional validations suggest that the curbing factor depends on the length of the time series. However, they consistently suggest the smaller curbing factor performs better than the larger curbing factors. The correction factors can be estimated by `HetBiv_ShortBC.m` and `HetBiv_ShortBC_Fast.m`. 
 
 ## Usage
+`CF=HetBiv_*(ts1,ts2,ndpr,howfar,figflag)`
+`ts1 & ts2:` Two time series from node 1 and node 2. Note that the time series should have been already zero-meaned. 
+`ndpr:` Number of time points. Note that the the number of time points should be equal in ts1 and ts2. 
+`howfar:` Curbing factor which should be between 0 and 1. howfar=0 means 0lags and 1 indicated the whole time series. 
+`figfalg:` Should be set to 1 if you are interested in toeplitz and covariance matrices, otherwise should be set to 0. 
