@@ -14,3 +14,5 @@ In this case, the assumption is that the 0 lag versions of the two time series a
 
 ## HetBiv for n-lag dependent (cross-correlated) time series
 The last version and most sophisticated version of HetBiv correction factor assumes that the time series are not only dependent in their 0-lag versions, but also there are dependency between lagged versions of the two time series. However, in this case it is essential to use the *curbing factors* to avoid over-estimation of dependencies in far lags. The provisional validations suggest that the curbing factor depends on the length of the time series. However, they consistently suggest the smaller curbing factor performs better than the larger curbing factors. The correction factors can be estimated by `HetBiv_ShortBC.m` and `HetBiv_ShortBC_Fast.m`. 
+
+## Usage
