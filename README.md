@@ -17,7 +17,11 @@ The last version and most sophisticated version of HetBiv correction factor assu
 
 ## Usage
 `CF=HetBiv_*(ts1,ts2,ndpr,howfar,figflag)`
+
 `ts1 & ts2:` Two time series from node 1 and node 2. Note that the time series should have been already zero-meaned. 
+
 `ndpr:` Number of time points. Note that the the number of time points should be equal in ts1 and ts2. 
+
 `howfar:` Curbing factor which should be between 0 and 1. howfar=0 means 0lags and 1 indicated the whole time series. 
+
 `figfalg:` Should be set to 1 if you are interested in toeplitz and covariance matrices, otherwise should be set to 0. 
