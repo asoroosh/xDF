@@ -1,4 +1,4 @@
-function [CF,EDF]=HetBivCalc(X,Y,varargin)
+function [CF,EDF,Stat]=HetBivCalc(X,Y,varargin)
 % [CF]=HetBivCalc(x,y,varargin)
 %   Calculates the effective degrees of freedom of correlation coefficient
 %   of two time series X and Y. 
@@ -34,7 +34,7 @@ ndpr = length(X);
 %% Read
 
 %
-verbose=1;
+verbose=1; rho=[];
 if sum(strcmpi(varargin,'verbose'))
    verbose = varargin{find(strcmpi(varargin,'verbose'))+1}; 
 end
@@ -43,6 +43,7 @@ if sum(strcmpi(varargin,'Method'))
    CFm = varargin{find(strcmpi(varargin,'Method'))+1};
     if strcmpi(CFm,'BCF')
         CFmethod=1;
+        bnd_cc=NaN;
     elseif strcmpi(CFm,'CF0')
         CFmethod=2;
         bnd_cc=NaN;
@@ -122,7 +123,7 @@ CF_ind=(ndpr+2.*sum(wght.*(ac_x(2:end).*ac_y(2:end))))./ndpr;
 if  CFmethod==1
     CF=CF_ind;
 elseif CFmethod==2
-    rho=corr(X',Y');
+    rho = corr(X',Y');
     CF=CF_ind+rho.^2;
     if verbose; disp(['xcorr(X,Y): ' num2str(rho)]); end; 
 elseif CFmethod==3        
@@ -132,7 +133,9 @@ elseif CFmethod==3
     CF_cc=sum(wght_cc.*(xycc.^2))./ndpr;
     CF=CF_ind+CF_cc;
     
-    if verbose; disp(['-corr(X,Y): ' num2str(xycc( ceil(length(wght_cc)/2) ))]); end; 
+    rho=xycc(ceil(length(wght_cc)/2));
+    
+    if verbose; disp(['-corr(X,Y): ' num2str(rho)]); end; 
 end
 
 EDF=ndpr./CF;
@@ -146,6 +149,15 @@ if verbose
         disp(['--How far on XCorr?    ' num2str(bnd_cc)]);
     end
 end
+
+Stat.corrXY     = rho;
+Stat.bnd_xcorr  = bnd_cc;
+Stat.bnd        = bnd;
+Stat.N          = ndpr;
+Stat.eN         = EDF;
+Stat.BCF        = CF_ind;
+Stat.CFm        = CFm;
+Stat.ACm        = ACm;
 
 
 %%%%%%%%%%%%%%%%%%%%%ALTERNATIVE%%%%%%%%%%%%%%%%%%%%%%%%%%
