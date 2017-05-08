@@ -52,7 +52,8 @@ if sum(strcmpi(varargin,'Method'))
         if sum(strcmpi(varargin,'CCHowfar'))
            bnd_cc = varargin{find(strcmpi(varargin,'CCHowfar'))+1};
         else
-           bnd_cc = ceil(ndpr*0.01); % worst is 1.
+           bnd_cc = round(ndpr*0.01);
+           if ~bnd_cc; bnd_cc=1; end;
         end
     else
         error('Unknown BCF methods. Choose between BCF, BC0, BCx');
