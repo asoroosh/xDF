@@ -43,10 +43,10 @@ if sum(strcmpi(varargin,'Method'))
    CFm = varargin{find(strcmpi(varargin,'Method'))+1};
     if strcmpi(CFm,'BCF')
         CFmethod=1;
-        bnd_cc=NaN;
+        bnd_cc=0;
     elseif strcmpi(CFm,'CF0')
         CFmethod=2;
-        bnd_cc=NaN;
+        bnd_cc=0;
     elseif strcmpi(CFm,'CFx')
         CFmethod=3;
         if sum(strcmpi(varargin,'CCHowfar'))
@@ -61,7 +61,7 @@ if sum(strcmpi(varargin,'Method'))
 else
    CFm='BCF';
    CFmethod=1;
-   bnd_cc=NaN;
+   bnd_cc=0;
 end
 %
 if sum(strcmpi(varargin,'Howfar'))
