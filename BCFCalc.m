@@ -39,10 +39,11 @@ function [cf,edf]=BCFCalc(x1,x2,varargin)
 %   the Strait of Belle Isle. J. Phys. Oceanogr. 11: 376?393.
 %
 %
-%   Soroosh Afyouni, UoW, April 2017
-%   srafyouni@gmail.com
-%
-
+%_________________________________________________________________________
+% Soroosh Afyouni, NISOx.org, 2017
+% srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
 %% Check Param
 
 ndpr=length(x1);

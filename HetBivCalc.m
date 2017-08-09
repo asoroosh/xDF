@@ -6,9 +6,7 @@ function [CF,EDF,Stat]=HetBivCalc(X,Y,varargin)
 %%%INPUTS
 %
 %
-%
 %%%OUTPUTS
-%
 %
 %
 %%%EXAMPLES
@@ -16,11 +14,12 @@ function [CF,EDF,Stat]=HetBivCalc(X,Y,varargin)
 %
 %%%REFERENCE
 %
-%   Soroosh Afyouni, UoW, 2017
-%   srafyouni@gmail.com
 %
-%
-%
+%_________________________________________________________________________
+% Soroosh Afyouni, NISOx.org, 2017
+% srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
 
 
 %Y1=randn(1000,1);
@@ -49,8 +48,8 @@ if sum(strcmpi(varargin,'Method'))
         bnd_cc=0;
     elseif strcmpi(CFm,'CFx')
         CFmethod=3;
-        if sum(strcmpi(varargin,'CCHowfar'))
-           bnd_cc = varargin{find(strcmpi(varargin,'CCHowfar'))+1};
+        if sum(strcmpi(varargin,'lag'))
+           bnd_cc = varargin{find(strcmpi(varargin,'lag'))+1};
         else
            bnd_cc = round(ndpr*0.01);
            if ~bnd_cc; bnd_cc=1; end;
@@ -118,7 +117,8 @@ elseif ACmfalg==2 %Robust -- never mind; too off!
 end
 
 %% Correction Factor Calculation
-wght=(ndpr-(1:bnd));
+nLg=ndpr-1;
+wght=(nLg-(1:bnd));
 CF_ind=(ndpr+2.*sum(wght.*(ac_x(2:end).*ac_y(2:end))))./ndpr;
 
 if  CFmethod==1
@@ -128,8 +128,9 @@ elseif CFmethod==2
     CF=CF_ind+rho.^2;
     if verbose; disp(['xcorr(X,Y): ' num2str(rho)]); end; 
 elseif CFmethod==3        
-    wght_cc = (ndpr-abs(-bnd_cc:bnd_cc));
-    xycc=crosscorr(X,Y,bnd_cc); %including the \rho_{xy} of course!
+    %wght_cc = (ndpr-abs(-bnd_cc:bnd_cc));
+    wght_cc=(nLg-abs(-(bnd_cc-1):bnd_cc-1));
+    xycc=crosscorr(X,Y,bnd_cc-1); %including the \rho_{xy} of course!
 
     CF_cc=sum(wght_cc.*(xycc.^2))./ndpr;
     CF=CF_ind+CF_cc;
@@ -171,4 +172,3 @@ Stat.ACm        = ACm;
 %sum(sum(Yt1.*Yt2,2))./length(x) %FASTER
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
