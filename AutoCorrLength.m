@@ -1,3 +1,4 @@
+function CorrLeng=AutoCorrLength(TS,HowFarTs)
 % function CorrLeng=AutoCorrLength(TS,HowFarTs)
 % Calculates the Correlation Lengths. i.e. measure how bad the things are
 % in terms of autocorrelation. Adapted from:
@@ -14,8 +15,11 @@
 %       HowFarTs should be a value between 0 and 1:
 %       HowFarTs=round(1./TS) only takes the first lag
 %       HowFarTs=round((TS-1)./TS) consider all lags
-
-function CorrLeng=AutoCorrLength(TS,HowFarTs)
+%_________________________________________________________________________
+% Soroosh Afyouni, NISOx.org, 2017
+% srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
 
 % ndpr=1200;
 
