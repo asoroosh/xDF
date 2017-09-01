@@ -12,6 +12,7 @@ function [BCF,EDF,xAC]=HetBivCalc_fft(Y,L,varargin)
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
+
 if size(Y,2)~=L
     Y=Y'; %IxT
 end
@@ -49,17 +50,30 @@ wgt     = (nLg-(1:nLg));
 BCF     = wgt.*xAC*xAC'; %pfff
 BCF     = (L+2*(BCF))./L;
 
-if CFmethod==1; EDF=L./BCF; return; end;
-if CFmethod==2; BCF=BCF+corr(Y').^2; EDF=L./BCF; end;
+if CFmethod==1
+    BCF(BCF<1)=1; %ensure that there are no node with BCF larger than 1.
+    EDF=L./BCF; 
+    return; 
+end
+
+if CFmethod==2
+    BCF=BCF+corr(Y').^2;
+    BCF(BCF<1)=1; %ensure that there are no node with BCF larger than 1.
+    EDF=L./BCF; 
+end
 
 if CFmethod==3
-    xC  = xC_fft(Y,L,'lag',lagcc); %IxIxnlgs
-    wgt = (nLg-abs(-(lagcc-1):lagcc-1));
-    xC  = bsxfun(@times,xC.^2,reshape(wgt,1,1,19));
+    xC  = xC_fft(Y,L,'lag',lagcc); %IxIxlagcc
+    wgt = (nLg-abs(-(lagcc-1):lagcc-1)); %1xlagcc
+    %size(wgt), size(xC)
+    xC  = bsxfun(@times,xC.^2,reshape(wgt,1,1,numel(wgt))); %here, wgt is multiplied by each plain of IxI of xC!
     xC  = sum(xC,3);
     xC  = xC+triu(xC,1)';
     BCF = BCF+xC./L;
+    
+    BCF(BCF<1)=1; %ensure that there are no node with BCF larger than 1.
+    
     EDF = L./BCF;
-end
+end 
 
 
