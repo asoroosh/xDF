@@ -5,8 +5,8 @@ function [cf,edf]=BCFCalc(x1,x2,varargin)
 %   of two give time series. 
 %
 %%%INPUTS
-%   
-%
+%   x1  : first time series as a vector
+%   x2  : second time series as a vector
 %%%OUTPUTS
 %   cf  : is the correction factor
 %   edf : is the effective degrees of freedom (i.e. N/cf)
@@ -49,9 +49,9 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 ndpr=length(x1);
 
 if sum(strcmpi(varargin,'Howfar'))
-   j           =   varargin{find(strcmpi(varargin,'Howfar'))+1};
+   lagkey           =   varargin{find(strcmpi(varargin,'Howfar'))+1};
 else
-   j   =    round(ndpr./5); % 20%  
+   lagkey   =    round(ndpr./5); % 20%  
 end
 
 if sum(strcmpi(varargin,'ACtype'))
@@ -101,16 +101,16 @@ end
 %% 
 
 if  ACmfalg==0 %Biased
-    ac_x=autocorr(x1,j);
-    ac_y=autocorr(x2,j);
+    ac_x=autocorr(x1,lagkey);
+    ac_y=autocorr(x2,lagkey);
     
 elseif ACmfalg==1 %Unbiased
-    ac_x=(ndpr./(ndpr-(0:j)))'.*autocorr(x1,j);
-    ac_y=(ndpr./(ndpr-(0:j)))'.*autocorr(x2,j);
+    ac_x=(ndpr./(ndpr-(0:lagkey)))'.*autocorr(x1,lagkey);
+    ac_y=(ndpr./(ndpr-(0:lagkey)))'.*autocorr(x2,lagkey);
     
 elseif ACmfalg==2 %Robust
     ac_x(1)=1; ac_y(1)=1;
-    for jj=2:j+1
+    for jj=2:lagkey+1
         ac_x(jj,1)= madicc(x1(1:end-jj),x1(jj+1:end));
         ac_y(jj,1)= madicc(x2(1:end-jj),x2(jj+1:end));
     end
@@ -123,7 +123,7 @@ elseif ~InterMethflag
 end
 
 if wghtflag
-    wght=(ndpr-(1:j))./ndpr;
+    wght=(ndpr-(1:lagkey))./ndpr;
 elseif ~wghtflag
     wght=1;
 end
