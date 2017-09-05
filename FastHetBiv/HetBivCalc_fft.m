@@ -7,6 +7,11 @@ function [BCF,EDF,xAC]=HetBivCalc_fft(Y,L,varargin)
 %   NB! If input Y is not in IxT form, then it is automatically transposed.
 %
 %   Dependencies: AC_fft.m & xC_fft.m
+%
+%%%REFERENCES:
+%
+%   Afyouni & Nichols, 2017
+%   Bayley & Hammersley 1946
 %_________________________________________________________________________
 % Soroosh Afyouni, NISOx.org, 2017
 % srafyouni@gmail.com
