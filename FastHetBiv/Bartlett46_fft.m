@@ -17,5 +17,5 @@ xAC = xAC(:,2); % AC lag-1
 
 xAC=xAC*xAC';
 
-BCF=(1-xAC)./(1+xAC);
-BCFA=(1-xAC)./((1+xAC).*(1-corr(Y').^2).^2);
+BCF=(1+xAC)./(1-xAC);
+BCFA=(1+xAC)./((1-xAC).*(1-corr(Y').^2).^2);
