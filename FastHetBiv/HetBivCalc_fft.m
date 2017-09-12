@@ -72,14 +72,14 @@ CF     = wgt.*xAC*xAC'; %pfff
 CF     = (L+2*(CF))./L;
 
 if CFmethod==1
-    CF(CF<1)=1; %ensure that there are no node with BCF larger than 1.
+    CF(CF<1)=1; %ensure that there are no node with BCF smaller than 1.
     EDF=L./CF; 
     return; 
 end
 
 if CFmethod==2
     CF=CF+corr(Y').^2;
-    CF(CF<1)=1; %ensure that there are no node with BCF larger than 1.
+    CF(CF<1)=1; %ensure that there are no node with BCF smaller than 1.
     EDF=L./CF; 
 end
 
@@ -92,7 +92,7 @@ if CFmethod==3
     xC  = xC+triu(xC,1)';
     CF = CF+xC./L;
     
-    CF(CF<1)=1; %ensure that there are no node with BCF larger than 1.
+    CF(CF<1)=1; %ensure that there are no node with BCF smaller than 1.
     
     EDF = L./CF;
 end 

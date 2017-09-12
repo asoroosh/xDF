@@ -14,8 +14,7 @@ function [BCF,BCFA]=Bartlett46_fft(Y,L)
 %   AC_fft.m 
 % 
 %%%REFERENCES:
-%   BRETHERTON et al, Journal of Climate, 1999, p2004
-%   Arbabshirani et al, NeuroImage, 2016,  
+%   Bretherton et al, Journal of Climate, 1999, p2004
 %   Robert Haining, Geographical Analysis, 1991
 %   Richardson & Clifford, 1991, p300
 %_________________________________________________________________________
