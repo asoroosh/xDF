@@ -1,17 +1,33 @@
-function [BCF,EDF,xAC]=HetBivCalc_fft(Y,L,varargin)
-%[BCF,xAC]=HetBivCalc_fft(Y,L)
+function [CF,EDF,xAC]=HetBivCalc_fft(Y,L,varargin)
+%[CF,EDF,xAC]=HetBivCalc_fft(Y,L,varargin)
 %
 %   Super fast full-lag Bartlett's Correction Factor (BCF) calculation of 
 %   multi-dimention matrices. 
-%   
-%   NB! If input Y is not in IxT form, then it is automatically transposed.
 %
-%   Dependencies: AC_fft.m & xC_fft.m
+%%%INPUTS:
+%   Y: IxT or TxI BOLD voxel-wise/pacellated time series 
+%   L: Length of the time series! Just to check the dimensions are all
+%   sorted!
+%
+%   Optional Inputs:
+%       Method: 'BHCF', 'CF0', 'CFx'. [default: BHCF]
+%       lag: curbing on cross-covariance structure. [default: 1%]
+%
+%
+%%%OUTPUTS:
+%   BCF:  IxI matrix. Correction Factor selected as Method. \hat{N}=N/BCF
+%   EDF:  IxI matrix. Effective Degree of Freedom.
+%   xAC:  Full-lag Autocorrelation. IxT-1, Becareful about memory! 
+%   NB! if the correction factor is below 1, then it is forced to 1.
+%%%DEPENDENCIES: 
+%   AC_fft.m 
+%   xC_fft.m
 %
 %%%REFERENCES:
 %
 %   Afyouni & Nichols, 2017
-%   Bayley & Hammersley 1946
+%   Bayley & Hammersley, 1946
+%   Richardson & Clifford, 1991
 %_________________________________________________________________________
 % Soroosh Afyouni, NISOx.org, 2017
 % srafyouni@gmail.com
@@ -52,19 +68,19 @@ xAC(:,1) = []; %because we later take care of that little lag0!
 nLg      = L-1;
 
 wgt     = (nLg-(1:nLg));
-BCF     = wgt.*xAC*xAC'; %pfff
-BCF     = (L+2*(BCF))./L;
+CF     = wgt.*xAC*xAC'; %pfff
+CF     = (L+2*(CF))./L;
 
 if CFmethod==1
-    BCF(BCF<1)=1; %ensure that there are no node with BCF larger than 1.
-    EDF=L./BCF; 
+    CF(CF<1)=1; %ensure that there are no node with BCF larger than 1.
+    EDF=L./CF; 
     return; 
 end
 
 if CFmethod==2
-    BCF=BCF+corr(Y').^2;
-    BCF(BCF<1)=1; %ensure that there are no node with BCF larger than 1.
-    EDF=L./BCF; 
+    CF=CF+corr(Y').^2;
+    CF(CF<1)=1; %ensure that there are no node with BCF larger than 1.
+    EDF=L./CF; 
 end
 
 if CFmethod==3
@@ -74,11 +90,11 @@ if CFmethod==3
     xC  = bsxfun(@times,xC.^2,reshape(wgt,1,1,numel(wgt))); %here, wgt is multiplied by each plain of IxI of xC!
     xC  = sum(xC,3);
     xC  = xC+triu(xC,1)';
-    BCF = BCF+xC./L;
+    CF = CF+xC./L;
     
-    BCF(BCF<1)=1; %ensure that there are no node with BCF larger than 1.
+    CF(CF<1)=1; %ensure that there are no node with BCF larger than 1.
     
-    EDF = L./BCF;
+    EDF = L./CF;
 end 
 
 
