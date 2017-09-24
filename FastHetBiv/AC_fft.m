@@ -1,15 +1,18 @@
 function [xAC]=AC_fft(Y,L,varargin)
 %[xAC]=AC_fft(Y,L,varargin)
-% Super fast full-lag AC calculation of multi-dimention matrices.
+% Super fast full-lag AC calculation of multi-dimention matrices. The
+% function exploits fft to estimate the autocorrelations. 
 %
 %%%%INPUTS
-%
+%   Y:      A matrix of size IxT containing the I time series and T length.
+%   L:      Time series length
+%   
+%   To get a double sided AC, add 'two-sided' as an input
 %%%%OUTPUTS
-%
-%
-%%%%REFERENCE
+%   xAC:    IxT-1 matrix of full-lag autocorrelations. If 'two-sided'
+%           switched, then the matrix is Ix2(T-1). 
 %_________________________________________________________________________
-% Soroosh Afyouni, NISOx.org, 2017
+% Soroosh Afyouni, Ox, 2017
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
