@@ -1,4 +1,4 @@
-function [CF,EDF,xAC]=HetBivCalc_fft(Y,L,varargin)
+function [CF,V,EDF,xAC,acpvals]=HetBivCalc_fft(Y,L,varargin)
 %[CF,EDF,xAC]=HetBivCalc_fft(Y,L,varargin)
 %
 %   Super fast full-lag Bartlett's Correction Factor (BCF) calculation of 
@@ -34,6 +34,14 @@ function [CF,EDF,xAC]=HetBivCalc_fft(Y,L,varargin)
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
 
+restricttheones=0; trimflag = 1; 
+%change this to 1 if you want to restrict them to min 1.
+%78 85 98 these lines make sure you never exceed the original df. They are
+%commented atm, return them back after the simulation tests. 
+
+%This should be approximately equivalent to CF=HetBiv_fft(t,N)
+%trace(toeplitz(AC_fft(t(1,:),N))*toeplitz(AC_fft(t(2,:),N)))./N
+
 if size(Y,2)~=L
     Y=Y'; %IxT
 end
@@ -63,23 +71,67 @@ else
    lagcc=0;
 end
 
-xAC      = AC_fft(Y,L);
-xAC(:,1) = []; %because we later take care of that little lag0! 
-nLg      = L-1;
+if sum(strcmpi(varargin,'Trim'))
+    Trim_str = varargin{find(strcmpi(varargin,'Trim'))+1};
+    if strcmpi(Trim_str,'on')
+        trimflag=1;
+    elseif strcmpi(Trim_str,'off')
+        trimflag=0;
+    else
+        error('Trim should be followed by ON or OFF.')
+    end
+end
 
-wgt = (nLg-(1:nLg));
-CF  = wgt.*xAC*xAC'; %pfff
-CF  = (L+2*(CF))./L;
+xAC      = AC_fft(Y,L);
+xAC(:,1) = []; %because we later take care of that little lag0!
+
+if trimflag
+        %----Detecting the sig AC lags: 
+        varacf  = (1+2.*sum(xAC(:,1:L/5).^2,2))./L; %From Anderson's p8: variance of a.c.f
+        zs      = xAC./sqrt(varacf);     %z-scores
+        acpvals = 2.*normcdf(-abs(zs));  %pvals
+
+        %FDR
+        for i=1:I; acpvals(i,:) = fdr_bh(acpvals(i,:)); end; %FDR
+
+        %Bonferroni
+        %acpvals(acpvals<(0.05/L))=1;
+        %acpvals(acpvals<1)=0;
+
+        %LM test
+        %for i=1:I; [~,pp]=lbqtest(Y(:,i),'Lags',1:L-1); pp(pp<(0.05/L))=1; pp(pp<1)=0; acpvals(i,:)=pp; end; 
+else 
+    acpvals = ones(size(xAC));
+end
+
+xAC     = acpvals.*xAC;          %filter the AC function.
+
+%----Detecting the sig AC lags:
+nLg    = L-1;
+wgt    = (nLg:-1:1);
+CF     = wgt.*xAC*xAC'; %pfff
+CovSxy = (L+2*(CF));
+CF     = CovSxy./L;
+V      = CovSxy./L.^2;
+% this dude above should be trace(toeplitz(ac100)*toeplitz(ac200))./N
 
 if CFmethod==1
-    CF(CF<1) = 1; %ensure that there are no node with BCF smaller than 1.
+    if restricttheones; CF(CF<1) = 1; end; %ensure that there are no node with BCF smaller than 1.
     EDF = L./CF; 
     return; 
 end
 
 if CFmethod==2
-    CF = CF+corr(Y').^2;
-    CF(CF<1) = 1; %ensure that there are no node with BCF smaller than 1.
+    rho    = corr(Y');    
+    %VarS   = ((1-rho.^2).^2)./(1+rho.^2);
+    
+    CovSxy = CovSxy+(L*rho.^2);
+    CF = (CovSxy)./L;
+ 
+    V  = (CovSxy)./L.^2;
+    %V  = V.*(VarS);
+    
+    if restricttheones; CF(CF<1) = 1; end; %ensure that there are no node with BCF smaller than 1.
     EDF = L./CF; 
 end
 
@@ -92,7 +144,7 @@ if CFmethod==3
     xC  = xC+triu(xC,1)';
     CF  = CF+xC./L;
     
-    CF(CF<1) = 1; %ensure that there are no node with BCF smaller than 1.
+    if restricttheones; CF(CF<1) = 1; end; %ensure that there are no node with BCF smaller than 1.
     
     EDF = L./CF;
 end 
