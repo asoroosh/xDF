@@ -11,7 +11,6 @@ load('Sim_ARCD_5k_HetBiv2.mat')
 fp=figure('position',[50,500,800,600]); hold on; 
 for t_cnt=1:numel(tlist)
     
-
     sp0=subplot(2,2,t_cnt);
     hold on; grid on; box on; 
     

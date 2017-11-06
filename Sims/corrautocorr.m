@@ -1,4 +1,4 @@
-function t=corrautocorr(mu,sigR,sigC,ndp,verboseflag)
+function [t]=corrautocorr(mu,sigR,sigC,ndp,verboseflag)
 % t = corrautocorr(mu,sig,ndp)
 %   Draws from Matrix Normal Distribution by Cholesky Decomposition
 %
@@ -71,14 +71,18 @@ if isscalar(sigR) %assumes it is a lazy way of saying only two time series!
     sigR = sigR0;
 end
 numt  = numel(mu);
-z = randn(numt,ndp); % X~N(0,1)
+z     = randn(numt,ndp); % X~N(0,1)
+
+
 [CsigR,psdflag] = chol(sigR); %sigR=(chol(abs(sigR)).*sign(sigR))'; %that is stupid!
 if psdflag
     if verboseflag; warning('Found the nearest PSD matrix for Corr.'); end;
     sigR  = nearestSPD(sigR); %in case they are not SPD
     CsigR = chol(sigR);
 end
+
 MVDisk = CsigR'*z;
+
 if size(sigC,3)>1
     assert(size(sigC,3)==numt,'Number of layers in SigC should match the number of time series.')
     for l=1:size(sigC,3)
@@ -105,8 +109,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Old version 
 % z = randn(numel(mu),ndp);            
-%t = chol(sigR)'*z*chol(sigC)'+mu';    % Y=M+AXB for Y~MN(mu,AA',BB')
-%corr(t')
+%t_test = sqrtm(sigR)'*z*sqrtm(sigC)'+mu';    % Y=M+AXB for Y~MN(mu,AA',BB')
+%corr(t_test')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

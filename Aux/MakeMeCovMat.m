@@ -59,3 +59,17 @@ while p ~= 0
     Ahat   = Ahat + (-mineig*k.^2 + eps(mineig))*eye(size(A));
   end
 end
+
+nAhat = ones(r);
+nAhat(1:r+1:end) = ones(r,1).*mean(diag(Ahat));
+mAhat = Ahat./nAhat;
+
+figure; imagesc(mAhat)
+
+sqrtm(Ahat);
+
+sqrtm(mAhat);
+if ~p 
+    disp('Normalisation failed!');
+    Ahat=mAhat; 
+end

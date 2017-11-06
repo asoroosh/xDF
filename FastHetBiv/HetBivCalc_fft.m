@@ -77,34 +77,40 @@ if sum(strcmpi(varargin,'Trim'))
         trimflag=1;
     elseif strcmpi(Trim_str,'off')
         trimflag=0;
+    elseif strcmpi(Trim_str,'taper') 
+        trimflag=2;
     else
         error('Trim should be followed by ON or OFF.')
     end
 end
 
+if sum(strcmpi(varargin,'Whiten'))
+    Y = WhiteningCorr(Y,L,'Method','Chol');
+end
+
 xAC      = AC_fft(Y,L);
 xAC(:,1) = []; %because we later take care of that little lag0!
 
-if trimflag
+acpvals=zeros(size(xAC));
+if trimflag==1
         %----Detecting the sig AC lags: 
-        varacf  = (1+2.*sum(xAC(:,1:L/5).^2,2))./L; %From Anderson's p8: variance of a.c.f
-        zs      = xAC./sqrt(varacf);     %z-scores
-        acpvals = 2.*normcdf(-abs(zs));  %pvals
-
+        varacf   = (1+2.*sum(xAC(:,1:(L/5)).^2,2))./L; %From Anderson's p8: variance of a.c.f        
+        zs       = xAC./sqrt(varacf);     %z-scores
+        acpvals0 = 2.*normcdf(-abs(zs));  %pvals
         %FDR
-        for i=1:I; acpvals(i,:) = fdr_bh(acpvals(i,:)); end; %FDR
-
-        %Bonferroni
-        %acpvals(acpvals<(0.05/L))=1;
-        %acpvals(acpvals<1)=0;
-
-        %LM test
-        %for i=1:I; [~,pp]=lbqtest(Y(:,i),'Lags',1:L-1); pp(pp<(0.05/L))=1; pp(pp<1)=0; acpvals(i,:)=pp; end; 
-else 
+        for i=1:I; acpvals(i,:) = fdr_bh(acpvals0(i,:)); end; %FDR
+        xAC     = acpvals.*xAC;%filter the AC function
+elseif trimflag == 0 
     acpvals = ones(size(xAC));
+    xAC     = acpvals.*xAC;
+elseif trimflag==2
+    M              = round(2*sqrt(L));
+    xAC_tmp        = zeros(size(xAC));
+    xAC_tmp(1)     = 1;
+    xAC_tmp(:,1:M) = (1+cos([1:M].*pi./M))./2.*xAC(:,1:M);
+    xAC            = xAC_tmp; 
+    clear *_tmp acpvals;
 end
-
-xAC     = acpvals.*xAC;          %filter the AC function.
 
 %----Detecting the sig AC lags:
 nLg    = L-1;
@@ -123,16 +129,11 @@ end
 
 if CFmethod==2
     rho    = corr(Y');    
-    %VarS   = ((1-rho.^2).^2)./(1+rho.^2);
-    
     CovSxy = CovSxy+(L*rho.^2);
-    CF = (CovSxy)./L;
- 
-    V  = (CovSxy)./L.^2;
-    %V  = V.*(VarS);
-    
+    CF     = (CovSxy)./L;
+    V      = (CovSxy)./L.^2;    
     if restricttheones; CF(CF<1) = 1; end; %ensure that there are no node with BCF smaller than 1.
-    EDF = L./CF; 
+    EDF    = L./CF; 
 end
 
 if CFmethod==3
