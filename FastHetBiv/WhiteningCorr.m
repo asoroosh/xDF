@@ -4,6 +4,10 @@ function Wy = WhiteningCorr(Y,L,varargin)
 % PCA:      Wy = WhiteningCorr(Y,L,'Method','PCA')
 % ZCA:      Wy = WhiteningCorr(Y,L,'Method','ZCA')
 % Cholesky: Wy = WhiteningCorr(Y,L,'Method','Chol')
+% SQRTM:    Wy = WhiteningCorr(Y,L,'Method','sqrtm')
+%
+%   NB! Becareful about number of time series, the estm gets crappier as 
+%   the number of time series grows.  
 %
 % Soroosh Afyouni, Ox, 2017
 % srafyouni@gmail.com
@@ -24,10 +28,12 @@ if sum(strcmpi(varargin,'Method'))
     elseif strcmpi(MethodStr,'ZCA')
         [U,S,~] = svd(sigma);
         Wy = U * diag(1./sqrt(diag(S) + eps)) * U' * dmY;
-    elseif strcmpi(MethodStr,'Chol') || strcmpi(CFm,'Cholesky')
-        %R  = chol(sigma)';
+    elseif strcmpi(MethodStr,'Chol') || strcmpi(MethodStr,'Cholesky')
+        R  = chol(sigma)';
+        Wy = pinv(R)*dmY; %FUCK!
+    elseif strcmpi(MethodStr,'SQRTM')
         R  = sqrtm(sigma)';
-        Wy = pinv(R)*dmY; %FUCK! 
+        Wy = pinv(R)*dmY; %FUCK!         
     end
 else
     R  = sqrtm(sigma)';
@@ -57,6 +63,3 @@ end
 % scatter(dmY(1,:),dmY(2,:),'r.')
 % scatter(Wy(1,:),Wy(2,:),'k.')
 
-%
-%ALSO SEE:
-%http://ufldl.stanford.edu/wiki/index.php/Implementing_PCA/Whitening

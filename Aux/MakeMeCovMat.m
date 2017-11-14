@@ -3,11 +3,12 @@ function [sigCmat,CsigC]=MakeMeCovMat(sigC,ndp,verboseflag)
 if ~exist('verboseflag','var'); verboseflag=1; end;
 
 if size(sigC,1)==numel(sigC); sigC=sigC'; end;
-db0   = [fliplr(sigC) 1 sigC];
-sigC0 = spdiags(ones(ndp,1)*db0,(-numel(sigC):numel(sigC)),ndp,ndp);
+db0      = [fliplr(sigC) 1 sigC];
+sigC0    = spdiags(ones(ndp,1)*db0,(-numel(sigC):numel(sigC)),ndp,ndp);
 sigCmat  = full(sigC0);
 
 [CsigC,psdflag]=chol(sigCmat);
+
 if psdflag
     clear CsigC
     if verboseflag; warning('Found the nearest PSD matrix for AC.'); end;
@@ -60,16 +61,16 @@ while p ~= 0
   end
 end
 
-nAhat = ones(r);
-nAhat(1:r+1:end) = ones(r,1).*mean(diag(Ahat));
-mAhat = Ahat./nAhat;
-
-figure; imagesc(mAhat)
-
-sqrtm(Ahat);
-
-sqrtm(mAhat);
-if ~p 
-    disp('Normalisation failed!');
-    Ahat=mAhat; 
-end
+% nAhat = ones(r);
+% nAhat(1:r+1:end) = ones(r,1).*mean(diag(Ahat));
+% mAhat = Ahat./nAhat;
+% 
+% figure; imagesc(mAhat)
+% 
+% sqrtm(Ahat);
+% 
+% sqrtm(mAhat);
+% if ~p 
+%     disp('Normalisation failed!');
+%     Ahat=mAhat; 
+% end

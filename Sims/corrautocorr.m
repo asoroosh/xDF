@@ -100,7 +100,8 @@ else
     if psdflag
         clear CsigC
         sigC  = nearestSPD(sigC); 
-        if verboseflag; warning('Found the nearest PSD matrix for AC.'); figure; imagesc(sigC); end;
+        %figure; imagesc(sigC);
+        if verboseflag; warning('Found the nearest PSD matrix for AC.'); end;
         CsigC = chol(sigC);
     end
     t     = mu'+MVDisk*CsigC';    % Y=M+AXB for Y~MN(mu,AA',BB')
