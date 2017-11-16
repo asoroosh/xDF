@@ -90,11 +90,11 @@ if sum(strcmpi(varargin,'Whiten'))
 end
 
 xAC      = AC_fft(Y,L);
-xAC(:,1) = []; %because we later take care of that little lag0!
 
 acpvals=zeros(size(xAC));
 if trimflag==1
     disp('--TRIM ON.')
+    error('JUST DONT FOR NOW!!')
     %----Detecting the sig AC lags: 
     varacf   = (1+2.*sum(xAC(:,1:(L/5)).^2,2))./L; %From Anderson's p8: variance of a.c.f        
     zs       = xAC./sqrt(varacf);     %z-scores
@@ -107,14 +107,16 @@ elseif trimflag == 0
     acpvals = ones(size(xAC));
     xAC     = acpvals.*xAC;
 elseif trimflag==2
-    disp('--TAPERED.')
+    disp('--TURKEY WINDOW TAPERED.')
     M              = round(sqrt(L));
     xAC_tmp        = zeros(size(xAC));
-    xAC_tmp(1)     = 1;
-    xAC_tmp(:,1:M) = (1+cos([1:M].*pi./M))./2.*xAC(:,1:M);
+    xAC_tmp(:,1)   = 1;  % becareful here! you'll remove the lag-0 further below!
+    xAC_tmp(:,2:M) = (1+cos([2:M].*pi./M))./2.*xAC(:,2:M);
     xAC            = xAC_tmp; 
     clear *_tmp acpvals;
 end
+
+xAC(:,1) = []; %because we later take care of that little lag-0!
 
 %----
 nLg    = L-1;
