@@ -34,7 +34,7 @@ function [CF,V,EDF,xAC,acpvals]=HetBivCalc_fft(Y,L,varargin)
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
 
-restricttheones=0; trimflag = 1; 
+restricttheones=0; trimflag = 0; 
 %change this to 1 if you want to restrict them to min 1.
 %78 85 98 these lines make sure you never exceed the original df. They are
 %commented atm, return them back after the simulation tests. 
@@ -85,7 +85,8 @@ if sum(strcmpi(varargin,'Trim'))
 end
 
 if sum(strcmpi(varargin,'Whiten'))
-    Y = WhiteningCorr(Y,L,'Method','Chol');
+    disp('--WHITENED.')
+    Y = WhiteningCorr(Y,L,'Method','SQRTM');
 end
 
 xAC      = AC_fft(Y,L);
@@ -93,18 +94,21 @@ xAC(:,1) = []; %because we later take care of that little lag0!
 
 acpvals=zeros(size(xAC));
 if trimflag==1
-        %----Detecting the sig AC lags: 
-        varacf   = (1+2.*sum(xAC(:,1:(L/5)).^2,2))./L; %From Anderson's p8: variance of a.c.f        
-        zs       = xAC./sqrt(varacf);     %z-scores
-        acpvals0 = 2.*normcdf(-abs(zs));  %pvals
-        %FDR
-        for i=1:I; acpvals(i,:) = fdr_bh(acpvals0(i,:)); end; %FDR
-        xAC     = acpvals.*xAC;%filter the AC function
-elseif trimflag == 0 
+    disp('--TRIM ON.')
+    %----Detecting the sig AC lags: 
+    varacf   = (1+2.*sum(xAC(:,1:(L/5)).^2,2))./L; %From Anderson's p8: variance of a.c.f        
+    zs       = xAC./sqrt(varacf);     %z-scores
+    acpvals0 = 2.*normcdf(-abs(zs));  %pvals
+    %FDR
+    for i=1:I; acpvals(i,:) = fdr_bh(acpvals0(i,:)); end; %FDR
+    xAC     = acpvals.*xAC;%filter the AC function
+elseif trimflag == 0
+    disp('--TRIM OFF.')
     acpvals = ones(size(xAC));
     xAC     = acpvals.*xAC;
 elseif trimflag==2
-    M              = round(2*sqrt(L));
+    disp('--TAPERED.')
+    M              = round(sqrt(L));
     xAC_tmp        = zeros(size(xAC));
     xAC_tmp(1)     = 1;
     xAC_tmp(:,1:M) = (1+cos([1:M].*pi./M))./2.*xAC(:,1:M);
@@ -112,7 +116,7 @@ elseif trimflag==2
     clear *_tmp acpvals;
 end
 
-%----Detecting the sig AC lags:
+%----
 nLg    = L-1;
 wgt    = (nLg:-1:1);
 CF     = wgt.*xAC*xAC'; %pfff
