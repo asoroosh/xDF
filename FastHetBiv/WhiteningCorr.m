@@ -23,18 +23,18 @@ sigma = dmY*dmY'./(L-1);
 if sum(strcmpi(varargin,'Method'))
     MethodStr = varargin{find(strcmpi(varargin,'Method'))+1};
     if strcmpi(MethodStr,'PCA') 
-        disp('**PCA**')
+        %disp('**PCA**')
         [U,S,~] = svd(sigma);                        
         Wy = diag(1./sqrt(diag(S) + eps)) * U' * dmY;
     elseif strcmpi(MethodStr,'ZCA')
-        disp('**ZCA**')
+        %disp('**ZCA**')
         [U,S,~] = svd(sigma);
         Wy = U * diag(1./sqrt(diag(S) + eps)) * U' * dmY;
     elseif strcmpi(MethodStr,'Chol') || strcmpi(MethodStr,'Cholesky')
         R  = chol(sigma)';
         Wy = pinv(R)*dmY; %FUCK!
     elseif strcmpi(MethodStr,'SQRTM')
-        disp('**SQRTM**')
+        %disp('**SQRTM**')
         R  = sqrtm(sigma)';
         Wy = pinv(R)*dmY; %FUCK!         
     end

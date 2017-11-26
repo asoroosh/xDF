@@ -85,7 +85,7 @@ if sum(strcmpi(varargin,'Trim'))
 end
 
 if sum(strcmpi(varargin,'Whiten'))
-    disp('--WHITENED.')
+    %disp('--WHITENED.')
     Y = WhiteningCorr(Y,L,'Method','SQRTM');
 end
 
@@ -103,12 +103,13 @@ if trimflag==1
     for i=1:I; acpvals(i,:) = fdr_bh(acpvals0(i,:)); end; %FDR
     xAC     = acpvals.*xAC;%filter the AC function
 elseif trimflag == 0
-    disp('--TRIM OFF.')
+    %disp('--TRIM OFF.')
     acpvals = ones(size(xAC));
     xAC     = acpvals.*xAC;
 elseif trimflag==2
-    disp('--TURKEY WINDOW TAPERED.')
-    M              = round(sqrt(L));
+    %disp('--TURKEY WINDOW TAPERED.')
+    M              = round(varargin{find(strcmpi(varargin,'taper'))+1});
+    %M             = round(sqrt(L));
     xAC_tmp        = zeros(size(xAC));
     xAC_tmp(:,1)   = 1;  % becareful here! you'll remove the lag-0 further below!
     xAC_tmp(:,2:M) = (1+cos([2:M].*pi./M))./2.*xAC(:,2:M);
