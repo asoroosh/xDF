@@ -80,7 +80,7 @@ if sum(strcmpi(varargin,'Trim'))
     elseif strcmpi(Trim_str,'taper') 
         trimflag=2;
     else
-        error('Trim should be followed by ON or OFF.')
+        error('Trim should be followed by Tucky, taper or OFF.')
     end
 end
 
@@ -93,15 +93,20 @@ xAC      = AC_fft(Y,L);
 
 acpvals=zeros(size(xAC));
 if trimflag==1
-    disp('--TRIM ON.')
-    error('JUST DONT FOR NOW!!')
-    %----Detecting the sig AC lags: 
-    varacf   = (1+2.*sum(xAC(:,1:(L/5)).^2,2))./L; %From Anderson's p8: variance of a.c.f        
-    zs       = xAC./sqrt(varacf);     %z-scores
-    acpvals0 = 2.*normcdf(-abs(zs));  %pvals
-    %FDR
-    for i=1:I; acpvals(i,:) = fdr_bh(acpvals0(i,:)); end; %FDR
-    xAC     = acpvals.*xAC;%filter the AC function
+%    disp('--TRIM ON.')
+%     error('JUST DONT FOR NOW!!')
+%     %----Detecting the sig AC lags: 
+%     varacf   = (1+2.*sum(xAC(:,1:(L/5)).^2,2))./L; %From Anderson's p8: variance of a.c.f        
+%     zs       = xAC./sqrt(varacf);     %z-scores
+%     acpvals0 = 2.*normcdf(-abs(zs));  %pvals
+%     %FDR
+%     for i=1:I; acpvals(i,:) = fdr_bh(acpvals0(i,:)); end; %FDR
+%     xAC     = acpvals.*xAC;%filter the AC function
+
+M              = round(varargin{find(strcmpi(varargin,'on'))+1});
+acpvals(:,1:M) = 1;
+xAC            = acpvals.*xAC;
+
 elseif trimflag == 0
     %disp('--TRIM OFF.')
     acpvals = ones(size(xAC));
@@ -113,6 +118,7 @@ elseif trimflag==2
     xAC_tmp        = zeros(size(xAC));
     xAC_tmp(:,1)   = 1;  % becareful here! you'll remove the lag-0 further below!
     xAC_tmp(:,2:M) = (1+cos([2:M].*pi./M))./2.*xAC(:,2:M);
+    
     xAC            = xAC_tmp; 
     clear *_tmp acpvals;
 end
