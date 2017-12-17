@@ -99,14 +99,15 @@ ASA=((rho.^2./2).* trace(Sigma_x ^2        )...
 %--------------------------------------------------------------------------          
 CnR=CnRe./T^2; %just to check how bad the others are doing!
 
-
 function ct_ts=curbtaperme(ts,M)
-  M          = round(M);
-  msk        = zeros(size(ts));
-  msk(:,1:M) = 1;
-  ct_ts      = msk.*ts;
+% Curb the autocorrelations, according to Anderson 1984
+M          = round(M);
+msk        = zeros(size(ts));
+msk(:,1:M) = 1;
+ct_ts      = msk.*ts;
   
 function srnkd_ts=shrinkme(ts)
+%Shrinks the *early* bucnhes of autocorr coefficients beyond the CI.
 L = numel(ts);
 bnd = (sqrt(2)*erfinv(0.95))./sqrt(L);
 idx = find(abs(ts)>bnd);
@@ -116,8 +117,10 @@ where2stop = where2stop(1);
 srnkd_ts   = curbtaperme(ts,where2stop);
 
 function tt_ts=tukeytaperme(ts,M,intv)
-  if ~exist('intv','var'); intv = 1; warning('Oi!'); end;
-  M          = round(M);
-  tt_ts      = zeros(size(ts));
-  tt_ts(:,1) = intv;
-  tt_ts(2:M) = (1+cos([2:M].*pi./M))./2.*ts(2:M);
+%performs Single Tukey Tapering for given length of window, M, and initial
+%value, intv. intv should only be used on crosscorrelation matrices. 
+if ~exist('intv','var'); intv = 1; warning('Oi!'); end;
+M          = round(M);
+tt_ts      = zeros(size(ts));
+tt_ts(:,1) = intv;
+tt_ts(2:M) = (1+cos([2:M].*pi./M))./2.*ts(2:M);
