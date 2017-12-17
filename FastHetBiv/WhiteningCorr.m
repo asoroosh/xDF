@@ -20,6 +20,11 @@ end
 dmY   = Y-mean(Y,2);
 sigma = dmY*dmY'./(L-1);
 
+
+if nargin>2 && ~sum(strcmpi(varargin,{'Method','Decorrelate'}))
+    error('Choose either Method or Decorrelate.')
+end
+
 if sum(strcmpi(varargin,'Method'))
     MethodStr = varargin{find(strcmpi(varargin,'Method'))+1};
     if strcmpi(MethodStr,'PCA') 
@@ -38,9 +43,14 @@ if sum(strcmpi(varargin,'Method'))
         R  = sqrtm(sigma)';
         Wy = pinv(R)*dmY; %FUCK!         
     end
+elseif sum(strcmpi(varargin,'Decorrelate')) % this only decorrelates!
+    [U,~,~] = eig(sigma);    
+    Wy = (dmY'*U')';
 else
     R  = sqrtm(sigma)';
     Wy = pinv(R)*dmY; 
+   
+    
 end
 
 %corr(PCA')

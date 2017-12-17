@@ -89,7 +89,11 @@ if sum(strcmpi(varargin,'Whiten'))
     Y = WhiteningCorr(Y,L,'Method','SQRTM');
 end
 
+size(Y)
+
 xAC      = AC_fft(Y,L);
+
+size(xAC)
 
 acpvals=zeros(size(xAC));
 if trimflag==1
