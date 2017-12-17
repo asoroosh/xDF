@@ -43,7 +43,6 @@ Sigma_y  = toeplitz(ac_y);
 ut_CC = shrinkme(ut_CC);
 lt_CC = shrinkme(lt_CC);
 
-plot(ut_CC)
 %Curbing---------------------------------------------------------
 % Mcc   = 9; %T/5; %round(sqrt(T));
 % ut_CC = curbtaperme(ut_CC,Mcc);
@@ -55,7 +54,6 @@ plot(ut_CC)
  %figure; imagesc(Sigma_xy) 
 %--------------------------------------------------------------------------
 Sigma_xy = (triu(toeplitz(ut_CC))+tril(toeplitz(lt_CC),-1))'; 
-figure; imagesc(Sigma_xy)
 % figure; 
 % subplot(3,2,1); hold on;
 % title('Sigma_{xy}')
