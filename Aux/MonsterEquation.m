@@ -1,59 +1,199 @@
-function [ASA,CnR]=MonsterEquation(ts,T)
+function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
 
-if size(ts,1) ~= 2 || size(ts,2) ~= T
-    error('PFF!')
+    if size(ts,1) ~= 2 || size(ts,2) ~= T
+        error('PFF!')
+    end
+    %ts  = dtrend(ts);
+    ts  = ts./std(ts,[],2); %standardise
+    %Corr----------------------------------------------------------------------
+    c   = corr(ts');
+    rho = c(1,2);
+    %Autocorr------------------------------------------------------------------
+    [ac] = AC_fft(ts,T); %demean the time series
+
+    ac_x = ac(1,1:T-1);
+    ac_y = ac(2,1:T-1);
+    %Cross-corr---------------------------------------------------------------- 
+    [xcf,lags]  = crosscorr(ts(1,:),ts(2,:),T-1); %demean the time series
+    acx_n = fliplr(xcf(2:T));
+    acx_p = xcf(T:end-1);
+
+    if sum(strcmpi(varargin,'taper'))
+        mth = varargin{find(strcmpi(varargin,'taper'))+1};
+        if strcmpi(mth,'tukey')
+    %Tukey Tappering----------------------------------------
+            M = round(varargin{find(strcmpi(varargin,'tukey'))+1});
+            if isempty(M); error('you MUST set a tukey factor.'); end;
+
+            %disp([mth 'ed with ' num2str(M) ' length was used.'])
+
+            ac_x = tukeytaperme(ac_x,M,1);
+            ac_y = tukeytaperme(ac_y,M,1);
+
+            %acx_n = shrinkme(acx_n);
+            %acx_p = shrinkme(acx_p);
+
+            acx_n = tukeytaperme(acx_n,M,rho);
+            acx_p = tukeytaperme(acx_p,M,rho);
+    %Shrinkage------------------------------------------------
+        elseif strcmpi(mth,'shrink')
+            M = round(varargin{find(strcmpi(varargin,'shrink'))+1});
+           
+            ac_x  = ShrinkPeriod(ac_x,M);
+            ac_y  = ShrinkPeriod(ac_y,M);
+
+
+            acx_n = ShrinkPeriod(acx_n,1);
+            acx_p = ShrinkPeriod(acx_p,1);
+    %Curbing------------------------------------------------
+        elseif strcmpi(mth,'curb')
+            M = round(varargin{find(strcmpi(varargin,'curb'))+1});
+
+            ac_x = curbtaperme(ac_x,M);
+            ac_y = curbtaperme(ac_y,M);
+
+            acx_n = curbtaperme(acx_n,M);
+            acx_p = curbtaperme(acx_p,M);
+    %--------------------------------------------------------------------------
+        else
+            error('choose shrink, tukey and curb as taper option.')
+        end
+    end
+
+    Sigma_x  = toeplitz(ac_x);
+    Sigma_y  = toeplitz(ac_y);
+    Sigma_xy = (triu(toeplitz(acx_n))+tril(toeplitz(acx_p),-1))'; 
+
+    %-------ME
+    SigX2     = trace(Sigma_x ^2);
+    SigY2     = trace(Sigma_y ^2);
+    SigXSigY  = trace(Sigma_x * Sigma_y);
+    SigXY2    = trace(Sigma_xy^2);
+    SigXSigXY = trace(Sigma_x * Sigma_xy);
+    SigYSigXY = trace(Sigma_y * Sigma_xy);
+
+    ASAt      = ((rho.^2./2) .* SigX2... 
+                +(rho.^2./2) .* SigY2...
+                +rho.^2      .* SigXY2...
+                -2.*rho      .* SigXSigXY...
+                -2.*rho      .* SigYSigXY... 
+                +SigXSigY...
+                +SigXY2)./T.^2;
+
+    %------- Test Stat
+    %Pearson's turf
+    rz   = rho/sqrt(ASAt);
+    r_pval = 2*normcdf(-abs(rz));  %both tails
+    %Fisher's turf
+    rf   = atanh(rho);
+    sf   = ASAt./((1-rho^2)^2);    %delta method
+    rzf  = rf/sqrt(sf);
+    f_pval = 2*normcdf(-abs(rzf)); %both tails
+    %-------Stat
+    Stat.ME.trSigX2       = SigX2;
+    Stat.ME.trSigY2       = SigY2;
+    Stat.ME.trSigXSigY    = SigXSigY;
+    Stat.ME.trSigXY2      = SigXY2; 
+    Stat.ME.trSigXSigXY   = SigXSigXY;
+    Stat.ME.trSigYSigXY   = SigYSigXY; 
+
+    Stat.p.r_Pval           = r_pval;
+    Stat.p.f_Pval           = f_pval;
+
+    Stat.z.rz = rz;
+    Stat.z.rzf = rzf;
+
+    Stat.CnR=SigXSigY./T^2; %just to check how bad the others are doing!
+end
+%--------------------------------------------------------------------------          
+
+function srnkd_ts=shrinkme(ts)
+%Shrinks the *early* bucnhes of autocorr coefficients beyond the CI.
+    L = numel(ts);
+    bnd = (sqrt(2)*erfinv(0.95))./sqrt(L);
+    idx = find(abs(ts)>bnd);
+    isit       = abs(ts)>bnd & (1:L);
+    where2stop = find(isit==0);
+    where2stop = where2stop(1);
+    % srnkd_ts   = tukeytaperme(ts,where2stop);
+    srnkd_ts   = curbtaperme(ts,where2stop);
+end
+function ct_ts=curbtaperme(ts,M)
+% Curb the autocorrelations, according to Anderson 1984
+    M          = round(M);
+    msk        = zeros(size(ts));
+    msk(:,1:M) = 1;
+    ct_ts      = msk.*ts;
+end
+function tt_ts=tukeytaperme(ts,M,intv)
+%performs Single Tukey Tapering for given length of window, M, and initial
+%value, intv. intv should only be used on crosscorrelation matrices. 
+    if ~exist('intv','var'); intv = 1; warning('Oi!'); end;
+    M          = round(M);
+    tt_ts      = zeros(size(ts));
+    tt_ts(:,1) = intv;
+    tt_ts(2:M) = (1+cos([2:M].*pi./M))./2.*ts(2:M);
 end
 
-%ts  = dtrend(ts);
-ts  = ts./std(ts,[],2); %standardise
-%Corr----------------------------------------------------------------------
-c   = corr(ts');
-rho = c(1,2);
-%Autocorr------------------------------------------------------------------
-[ac] = AC_fft(ts,T);
-%Tukey Tappering----------------------------------------
-%    Mac = T/5; %round(sqrt(T));
-%    ac(1,:) = tukeytaperme(ac(1,:),Mac,1);
-%    ac(2,:) = tukeytaperme(ac(2,:),Mac,1);
-%Shrinkage------------------------------------------------
-ac(1,:) = shrinkme(ac(1,:));
-ac(2,:) = shrinkme(ac(2,:));
-%Curbing------------------------------------------------
-% Mac = 9;%T/5; %round(sqrt(T));
-% ac  = curbtaperme(ac,Mac);
-%------------------------------------------------
-ac_x = ac(1,1:T-1);
-ac_y = ac(2,1:T-1);
+function sY=ShrinkPeriod(Y,WhichPeak)
 
-Sigma_x  = toeplitz(ac_x);
-Sigma_y  = toeplitz(ac_y);
+    T = numel(Y);
+    bnd=(sqrt(2)*erfinv(0.95))./sqrt(T);
+    
+    P  = round(InterX([1:T;Y],[1:T;zeros(1,T)]));
+    P  = P(1,:); 
+    P0 = [1 P(1,:)];
+    
+    if WhichPeak>numel(P)
+        warning('There are less peaks than you asked for.')
+        WhichPeak=numel(P);
+    end
+    
+    Idx=zeros(1,WhichPeak);
+    for p=1:WhichPeak; pY = Y(P0(p):P(p)); if any(abs(pY)>bnd); Idx(p)=1; end; end;
+    
+    for i=Idx
+        if ~i; break; end; 
+        Idx(i)=1; 
+    end
+    
+    sY0 = Y(1:max(P(find(Idx))));
+    sY  = zeros(1,T);
+    sY(1:numel(sY0)) = sY0;
+end
+function P = InterX(L1,L2)
+       
+    %...Preliminary stuff
+    x1  = L1(1,:)';  x2 = L2(1,:);
+    y1  = L1(2,:)';  y2 = L2(2,:);
+    dx1 = diff(x1); dy1 = diff(y1);
+    dx2 = diff(x2); dy2 = diff(y2);
+    
+    %...Determine 'signed distances'   
+    S1 = dx1.*y1(1:end-1) - dy1.*x1(1:end-1);
+    S2 = dx2.*y2(1:end-1) - dy2.*x2(1:end-1);
+    
+    C1 = feval(@le,D(bsxfun(@times,dx1,y2)-bsxfun(@times,dy1,x2),S1),0);
+    C2 = feval(@le,D((bsxfun(@times,y1,dx2)-bsxfun(@times,x1,dy2))',S2'),0)';
 
-%figure; imagesc(Sigma_x)
-%Cross-corr---------------------------------------------------------------- 
- [xcf,lags]  = crosscorr(ts(1,:),ts(2,:),T-1);
+    %...Obtain the segments where an intersection is expected
+    [i,j] = find(C1 & C2); 
+    if isempty(i),P = zeros(2,0);return; end;
+    
+    %...Transpose and prepare for output
+    i=i'; dx2=dx2'; dy2=dy2'; S2 = S2';
+    L = dy2(j).*dx1(i) - dy1(i).*dx2(j);
+    i = i(L~=0); j=j(L~=0); L=L(L~=0);  %...Avoid divisions by 0
+    
+    %...Solve system of eqs to get the common points
+    P = unique([dx2(j).*S1(i) - dx1(i).*S2(j), ...
+                dy2(j).*S1(i) - dy1(i).*S2(j)]./[L L],'rows')';
+              
+    function u = D(x,y)
+        u = bsxfun(@minus,x(:,1:end-1),y).*bsxfun(@minus,x(:,2:end),y);
+    end
+end
 
- ut_CC = fliplr(xcf(2:T)); %rhos sit hear, so later, we use -1 diag.
- lt_CC = xcf(T:end-1);
- 
-%Tukey Tapering the CROSS correlations----------------------------   
-%    Mcc = T/5; %;round(sqrt(T));
-%    ut_CC = tukeytaperme(ut_CC,Mcc,rho);
-%    lt_CC = tukeytaperme(lt_CC,Mcc,rho);
-%Shrinkage------------------------------------------------
-ut_CC = shrinkme(ut_CC);
-lt_CC = shrinkme(lt_CC);
-
-%Curbing---------------------------------------------------------
-% Mcc   = 9; %T/5; %round(sqrt(T));
-% ut_CC = curbtaperme(ut_CC,Mcc);
-% lt_CC = curbtaperme(lt_CC,Mcc);
-%Smoothing-------------------------------------------------------
- %KrnlSz = 2;
- %Sigma_xy = conv2(Sigma_xy, ones(KrnlSz)/KrnlSz^2,'same');
- %Sigma_xy = eye(T-1).*rho; % no cross-correlation; only 0lag corr
- %figure; imagesc(Sigma_xy) 
-%--------------------------------------------------------------------------
-Sigma_xy = (triu(toeplitz(ut_CC))+tril(toeplitz(lt_CC),-1))'; 
 % figure; 
 % subplot(3,2,1); hold on;
 % title('Sigma_{xy}')
@@ -85,40 +225,12 @@ Sigma_xy = (triu(toeplitz(ut_CC))+tril(toeplitz(lt_CC),-1))';
 % imagesc(Sigma_y,[-1 1])
 % disp(['Sigma_{y}: ' num2str(trace(Sigma_y))])
 
-CnRe = trace(Sigma_x * Sigma_y); % Clifford and Richardson
-
-ASA=((rho.^2./2).* trace(Sigma_x ^2        )...
-    +rho.^2     .* trace(Sigma_xy^2        )...
-    -2.*rho     .* trace(Sigma_x * Sigma_xy)...
-    +(rho.^2./2).* trace(Sigma_y ^2        )...
-    -2.*rho     .* trace(Sigma_y * Sigma_xy)...
-    + CnRe...
-    + trace(Sigma_xy^2))./T^2;          
-%--------------------------------------------------------------------------          
-CnR=CnRe./T^2; %just to check how bad the others are doing!
-
-function ct_ts=curbtaperme(ts,M)
-% Curb the autocorrelations, according to Anderson 1984
-M          = round(M);
-msk        = zeros(size(ts));
-msk(:,1:M) = 1;
-ct_ts      = msk.*ts;
-  
-function srnkd_ts=shrinkme(ts)
-%Shrinks the *early* bucnhes of autocorr coefficients beyond the CI.
-L = numel(ts);
-bnd = (sqrt(2)*erfinv(0.95))./sqrt(L);
-idx = find(abs(ts)>bnd);
-isit       = abs(ts)>bnd & (1:L);
-where2stop = find(isit==0);
-where2stop = where2stop(1);
-srnkd_ts   = curbtaperme(ts,where2stop);
-
-function tt_ts=tukeytaperme(ts,M,intv)
-%performs Single Tukey Tapering for given length of window, M, and initial
-%value, intv. intv should only be used on crosscorrelation matrices. 
-if ~exist('intv','var'); intv = 1; warning('Oi!'); end;
-M          = round(M);
-tt_ts      = zeros(size(ts));
-tt_ts(:,1) = intv;
-tt_ts(2:M) = (1+cos([2:M].*pi./M))./2.*ts(2:M);
+% CnRe = trace(Sigma_x * Sigma_y); % Clifford and Richardson; under the null
+% 
+% ASA=((rho.^2./2).* trace(Sigma_x ^2        )...
+%     +rho.^2     .* trace(Sigma_xy^2        )...
+%     -2.*rho     .* trace(Sigma_x * Sigma_xy)...
+%     +(rho.^2./2).* trace(Sigma_y ^2        )...
+%     -2.*rho     .* trace(Sigma_y * Sigma_xy)...
+%     + CnRe...
+%     + trace(Sigma_xy^2))./T^2;
