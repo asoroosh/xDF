@@ -38,13 +38,21 @@ function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
     %Shrinkage------------------------------------------------
         elseif strcmpi(mth,'shrink')
             M = round(varargin{find(strcmpi(varargin,'shrink'))+1});
-           
+            if M>1
             ac_x  = ShrinkPeriod(ac_x,M);
             ac_y  = ShrinkPeriod(ac_y,M);
 
-
             acx_n = ShrinkPeriod(acx_n,1);
             acx_p = ShrinkPeriod(acx_p,1);
+            elseif M==1
+            ac_x  = shrinkme(ac_x);
+            ac_y  = shrinkme(ac_y);
+
+            acx_n = shrinkme(acx_n);
+            acx_p = shrinkme(acx_p);    
+            else
+                error('What are you up to mate?!')
+            end
     %Curbing------------------------------------------------
         elseif strcmpi(mth,'curb')
             M = round(varargin{find(strcmpi(varargin,'curb'))+1});
@@ -60,50 +68,66 @@ function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
         end
     end
 
-    Sigma_x  = toeplitz(ac_x);
-    Sigma_y  = toeplitz(ac_y);
-    Sigma_xy = (triu(toeplitz(acx_n))+tril(toeplitz(acx_p),-1))'; 
+%     Sigma_x  = toeplitz(ac_x);
+%     Sigma_y  = toeplitz(ac_y);
+%     Sigma_xy = (triu(toeplitz(acx_n))+tril(toeplitz(acx_p),-1))'; 
+% 
+%     %-------ME
+%     SigX2     = trace(Sigma_x ^2);
+%     SigY2     = trace(Sigma_y ^2);
+%     SigXSigY  = trace(Sigma_x * Sigma_y);
+%     SigXY2    = trace(Sigma_xy^2);
+%     SigXSigXY = trace(Sigma_x * Sigma_xy);
+%     SigYSigXY = trace(Sigma_y * Sigma_xy);
+% 
+%     ASAt      = ((rho.^2./2) .* SigX2... 
+%                 +(rho.^2./2) .* SigY2...
+%                 +rho.^2      .* SigXY2...
+%                 -2.*rho      .* SigXSigXY...
+%                 -2.*rho      .* SigYSigXY... 
+%                 +SigXSigY...
+%                 +SigXY2)./T.^2;
+%     Stat.ME.trSigX2       = SigX2;
+%     Stat.ME.trSigY2       = SigY2;
+%     Stat.ME.trSigXSigY    = SigXSigY;
+%     Stat.ME.trSigXY2      = SigXY2; 
+%     Stat.ME.trSigXSigXY   = SigXSigXY;
+%     Stat.ME.trSigYSigXY   = SigYSigXY; 
+%     Stat.CnR=SigXSigY./T^2; %just to check how bad the others are doing!
 
-    %-------ME
-    SigX2     = trace(Sigma_x ^2);
-    SigY2     = trace(Sigma_y ^2);
-    SigXSigY  = trace(Sigma_x * Sigma_y);
-    SigXY2    = trace(Sigma_xy^2);
-    SigXSigXY = trace(Sigma_x * Sigma_xy);
-    SigYSigXY = trace(Sigma_y * Sigma_xy);
+%-----ME, but damn faster this time!
+nLg     = T-2;        %if lag0 was the 0th element. Also, the ACF has T-1 dof. eh?  
+wgt     = (nLg:-1:1);
+Tp      = T-1;
+LAMBDAX = ac_x (2:end);
+LAMBDAY = ac_y (2:end);
+RHOp    = acx_p(2:end);
+RHOn    = acx_n(2:end);
 
-    ASAt      = ((rho.^2./2) .* SigX2... 
-                +(rho.^2./2) .* SigY2...
-                +rho.^2      .* SigXY2...
-                -2.*rho      .* SigXSigXY...
-                -2.*rho      .* SigYSigXY... 
-                +SigXSigY...
-                +SigXY2)./T.^2;
+ASAt = [Tp*(1-rho.^2).^2 ...
+    + rho.^2 * sum( wgt .* (LAMBDAX.^2 + LAMBDAY.^2 + 2*RHOp.*RHOn))...
+    - 2 * rho* sum( wgt .* (RHOp+RHOn) .* (LAMBDAX+LAMBDAY))...
+    + 2 *      sum( wgt .* (RHOp.*RHOn  + LAMBDAX.*LAMBDAY))]./T.^2;
+
+%Keep your wit about you!
+if ASAt<(1-rho.^2).^2./T; ASAt=(1-rho.^2).^2./T; end; 
 
     %------- Test Stat
     %Pearson's turf
-    rz   = rho/sqrt(ASAt);
-    r_pval = 2*normcdf(-abs(rz));  %both tails
+    rz     = rho./sqrt((ASAt));    %abs(ASAt), because it is possible to get negative ASAt!
+    r_pval = 2 * normcdf(-abs(rz));  %both tails
     %Fisher's turf
     rf   = atanh(rho);
-    sf   = ASAt./((1-rho^2)^2);    %delta method
-    rzf  = rf/sqrt(sf);
-    f_pval = 2*normcdf(-abs(rzf)); %both tails
+    sf   = ASAt./((1-rho^2)^2); %delta method
+    rzf  = rf./sqrt(sf);
+    f_pval = 2 * normcdf(-abs(rzf)); %both tails
     %-------Stat
-    Stat.ME.trSigX2       = SigX2;
-    Stat.ME.trSigY2       = SigY2;
-    Stat.ME.trSigXSigY    = SigXSigY;
-    Stat.ME.trSigXY2      = SigXY2; 
-    Stat.ME.trSigXSigXY   = SigXSigXY;
-    Stat.ME.trSigYSigXY   = SigYSigXY; 
 
-    Stat.p.r_Pval           = r_pval;
-    Stat.p.f_Pval           = f_pval;
+    Stat.p.r_Pval = r_pval;
+    Stat.p.f_Pval = f_pval;
 
-    Stat.z.rz = rz;
+    Stat.z.rz  = rz;
     Stat.z.rzf = rzf;
-
-    Stat.CnR=SigXSigY./T^2; %just to check how bad the others are doing!
 end
 %--------------------------------------------------------------------------          
 
