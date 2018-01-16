@@ -1,4 +1,4 @@
-function [h_bon,p_bon,p,alp_bon]=z2p_bon(z_mat)
+function [h_bon,p_bon,p_unadj,alp_bon]=z2p_bon(z_mat)
 %[h_bon,p_bon,p,alp_bon]=z2p_bon(z_mat)
 %
 %%%INPUTS:
@@ -37,17 +37,17 @@ else
     ms_std = 1;
 end
 
-nt      = length(idx);
-p       = 2*normcdf(-abs(z_mat),0,ms_std);
+nt      = length(idx); %number of tests
+p_unadj       = 2*normcdf(-abs(z_mat),0,ms_std);
 
 %just to make sure that digonal won't be detected!!
-if itsamat; nn = size(p,1); p(1:nn+1:end) = 1; end
+if itsamat; nn = size(p_unadj,1); p_unadj(1:nn+1:end) = 1; end
 
-p_bon   = p.*nt;
+p_bon   = p_unadj.*nt;
 alp_bon = alp./nt;
 
 idx_m        = p_bon<alp;
-h_bon        = zeros(size(p));
+h_bon        = zeros(size(p_unadj));
 h_bon(idx_m) = 1;
 
 %pff, are you nuts?! just send back the p-val/fullgraph and threshold on 5%!

@@ -7,17 +7,22 @@ function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
     ts  = ts./std(ts,[],2); %standardise
     %Corr----------------------------------------------------------------------
     c   = corr(ts');
-    rho = c(1,2);
+    rho = (c(1,2));
     %Autocorr------------------------------------------------------------------
     [ac] = AC_fft(ts,T); %demean the time series
-
-    ac_x = ac(1,1:T-1);
-    ac_y = ac(2,1:T-1);
+    ac   = ac(:,1:T-1);
+    ac_x = ac(1,2:end);
+    ac_y = ac(2,2:end);
     %Cross-corr---------------------------------------------------------------- 
     [xcf,lags]  = crosscorr(ts(1,:),ts(2,:),T-1); %demean the time series
-    acx_n = fliplr(xcf(2:T));
-    acx_p = xcf(T:end-1);
+    acx_n = fliplr(xcf(2:T-1));
+    acx_p = xcf(T+1:end-1);
 
+    nLg     = T-2;        %if lag0 was the 0th element. Also, the ACF has T-1 dof. eh?  
+    
+    %figure; hold on;  
+    %plot(acx_n)
+    
     if sum(strcmpi(varargin,'taper'))
         mth = varargin{find(strcmpi(varargin,'taper'))+1};
         if strcmpi(mth,'tukey')
@@ -27,29 +32,29 @@ function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
 
             %disp([mth 'ed with ' num2str(M) ' length was used.'])
 
-            ac_x = tukeytaperme(ac_x,M,1);
-            ac_y = tukeytaperme(ac_y,M,1);
+            ac_x = tukeytaperme(ac_x,M);
+            ac_y = tukeytaperme(ac_y,M);
 
             %acx_n = shrinkme(acx_n);
             %acx_p = shrinkme(acx_p);
 
-            acx_n = tukeytaperme(acx_n,M,rho);
-            acx_p = tukeytaperme(acx_p,M,rho);
+            acx_n = tukeytaperme(acx_n,M);
+            acx_p = tukeytaperme(acx_p,M);
     %Shrinkage------------------------------------------------
         elseif strcmpi(mth,'shrink')
             M = round(varargin{find(strcmpi(varargin,'shrink'))+1});
             if M>1
-            ac_x  = ShrinkPeriod(ac_x,M);
-            ac_y  = ShrinkPeriod(ac_y,M);
+                ac_x  = ShrinkPeriod(ac_x,M);
+                ac_y  = ShrinkPeriod(ac_y,M);
 
-            acx_n = ShrinkPeriod(acx_n,1);
-            acx_p = ShrinkPeriod(acx_p,1);
+                acx_n = ShrinkPeriod(acx_n,1);
+                acx_p = ShrinkPeriod(acx_p,1);
             elseif M==1
-            ac_x  = shrinkme(ac_x);
-            ac_y  = shrinkme(ac_y);
+                ac_x  = shrinkme(ac_x,nLg);
+                ac_y  = shrinkme(ac_y,nLg);
 
-            acx_n = shrinkme(acx_n);
-            acx_p = shrinkme(acx_p);    
+                acx_n = shrinkme(acx_n,nLg);
+                acx_p = shrinkme(acx_p,nLg);    
             else
                 error('What are you up to mate?!')
             end
@@ -67,10 +72,11 @@ function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
             error('choose shrink, tukey and curb as taper option.')
         end
     end
-
+    %plot(acx_n)
+    
 %     Sigma_x  = toeplitz(ac_x);
 %     Sigma_y  = toeplitz(ac_y);
-%     Sigma_xy = (triu(toeplitz(acx_n))+tril(toeplitz(acx_p),-1))'; 
+%     Sigma_xy = triu(toeplitz(acx_n))+tril(toeplitz(acx_p),-1);
 % 
 %     %-------ME
 %     SigX2     = trace(Sigma_x ^2);
@@ -96,13 +102,12 @@ function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
 %     Stat.CnR=SigXSigY./T^2; %just to check how bad the others are doing!
 
 %-----ME, but damn faster this time!
-nLg     = T-2;        %if lag0 was the 0th element. Also, the ACF has T-1 dof. eh?  
 wgt     = (nLg:-1:1);
 Tp      = T-1;
-LAMBDAX = ac_x (2:end);
-LAMBDAY = ac_y (2:end);
-RHOp    = acx_p(2:end);
-RHOn    = acx_n(2:end);
+LAMBDAX = ac_x (1:end);
+LAMBDAY = ac_y (1:end);
+RHOp    = acx_p(1:end);
+RHOn    = acx_n(1:end);
 
 ASAt = [Tp*(1-rho.^2).^2 ...
     + rho.^2 * sum( wgt .* (LAMBDAX.^2 + LAMBDAY.^2 + 2*RHOp.*RHOn))...
@@ -110,7 +115,8 @@ ASAt = [Tp*(1-rho.^2).^2 ...
     + 2 *      sum( wgt .* (RHOp.*RHOn  + LAMBDAX.*LAMBDAY))]./T.^2;
 
 %Keep your wit about you!
-if ASAt<(1-rho.^2).^2./T; ASAt=(1-rho.^2).^2./T; end; 
+TV = (1-rho.^2).^2./T;
+if ASAt<TV; ASAt=TV; end; 
 
     %------- Test Stat
     %Pearson's turf
@@ -131,12 +137,26 @@ if ASAt<(1-rho.^2).^2./T; ASAt=(1-rho.^2).^2./T; end;
 end
 %--------------------------------------------------------------------------          
 
-function srnkd_ts=shrinkme(ts)
+% function srnkd_ts=shrinkme(ts)
+% %Shrinks the *early* bucnhes of autocorr coefficients beyond the CI.
+%     L = numel(ts);
+%     bnd = (sqrt(2)*erfinv(0.95))./sqrt(L);
+%     idx = find(abs(ts)>bnd);
+%     isit       = abs(ts)>bnd & (1:L);
+%     where2stop = find(isit==0);
+%     where2stop = where2stop(1);
+%     % srnkd_ts   = tukeytaperme(ts,where2stop);
+%     srnkd_ts   = curbtaperme(ts,where2stop);
+% end
+function srnkd_ts=shrinkme(ts,T)
 %Shrinks the *early* bucnhes of autocorr coefficients beyond the CI.
-    L = numel(ts);
-    bnd = (sqrt(2)*erfinv(0.95))./sqrt(L);
+    if ~sum(ismember(size(ts),T)); error('There is something wrong, mate!'); end
+    if size(ts,2) ~= T; ts = ts'; end
+        
+    bnd = (sqrt(2)*erfinv(0.95))./sqrt(T);
+    
     idx = find(abs(ts)>bnd);
-    isit       = abs(ts)>bnd & (1:L);
+    isit       = abs(ts)>bnd & (1:T);
     where2stop = find(isit==0);
     where2stop = where2stop(1);
     % srnkd_ts   = tukeytaperme(ts,where2stop);
@@ -149,14 +169,18 @@ function ct_ts=curbtaperme(ts,M)
     msk(:,1:M) = 1;
     ct_ts      = msk.*ts;
 end
-function tt_ts=tukeytaperme(ts,M,intv)
+function tt_ts=tukeytaperme(ts,M)
 %performs Single Tukey Tapering for given length of window, M, and initial
 %value, intv. intv should only be used on crosscorrelation matrices. 
-    if ~exist('intv','var'); intv = 1; warning('Oi!'); end;
+%
+%NB! There used to be initialisation parameters here before, intv. I 
+%remoeved it because we now start with the second elements of the ACF anyways. 
+
+    %if ~exist('intv','var'); intv = 1; warning('Oi!'); end;
     M          = round(M);
     tt_ts      = zeros(size(ts));
-    tt_ts(:,1) = intv;
-    tt_ts(2:M) = (1+cos([2:M].*pi./M))./2.*ts(2:M);
+    %tt_ts(:,1) = intv;
+    tt_ts(1:M) = (1+cos([1:M].*pi./M))./2.*ts(1:M);
 end
 
 function sY=ShrinkPeriod(Y,WhichPeak)

@@ -34,7 +34,7 @@ function [CF,V,EDF,xAC,acpvals]=HetBivCalc_fft(Y,L,varargin)
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
 
-restricttheones=0; trimflag = 0; 
+restricttheones=1; trimflag = 0; 
 %change this to 1 if you want to restrict them to min 1.
 %78 85 98 these lines make sure you never exceed the original df. They are
 %commented atm, return them back after the simulation tests. 
@@ -84,16 +84,12 @@ if sum(strcmpi(varargin,'Trim'))
     end
 end
 
-if sum(strcmpi(varargin,'Whiten'))
-    %disp('--WHITENED.')
-    Y = WhiteningCorr(Y,L,'Method','SQRTM');
-end
-
-size(Y)
+%if sum(strcmpi(varargin,'Whiten'))
+%    %disp('--WHITENED.')
+%    Y = WhiteningCorr(Y,L,'Method','SQRTM');
+%end
 
 xAC      = AC_fft(Y,L);
-
-size(xAC)
 
 acpvals=zeros(size(xAC));
 if trimflag==1

@@ -54,13 +54,15 @@ yfft  = fft(Y,nfft,2);
 mxLcc = (mxL-1)*2+1;
 xC    = zeros(I,I,mxLcc);
 
-[xx,yy]=find(triu(ones(I)));
+[xx,yy]=find(triu(ones(I),1));
 for i=1:numel(xx)
     xC0         = ifft(yfft(xx(i),:).*conj(yfft(yy(i),:)));
     xC0         = fliplr([xC0(end-mxL+2:end),xC0(1:mxL)]);
     xC(xx(i),yy(i),:)   = xC0./sqrt(sum(abs(Y(xx(i),:)).^2)*sum(abs(Y(yy(i),:)).^2));
     clear xC0
 end
+
+xC = xC + permute(xC,[2 1 3]);
 
 lidx = [-(mxL-1) : (mxL-1)];
 

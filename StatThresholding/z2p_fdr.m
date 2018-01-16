@@ -1,4 +1,4 @@
-function [h_fdr,p_fdr,p,cv_fdr]=z2p_fdr(z_mat)
+function [h_fdr,padj_fdr,p_unadj,pval_cv_fdr]=z2p_fdr(z_mat)
 %[h_fdr,p_fdr,p,cv_fdr]=z2p_fdr(z_mat)
 %
 %%%INPUTS:
@@ -7,6 +7,13 @@ function [h_fdr,p_fdr,p,cv_fdr]=z2p_fdr(z_mat)
 % Input can be either matrix of NxN or vector of 1xN. 
 % If input is 3D, the 3rd dim is considered as number of subjects, and
 % the std is adjusted accordingly. 
+%
+%%%OUTPUTS:
+%
+%   h_fdr   : flags of whether an edge is sig or not.
+%   p_fdr   : adjusted p-values (with fdr, obviousely!).
+%   p_unadj : raw pvalues (i.e. unadjusted).
+%   pval_cv_fdr : critical pvalues on FDR corrected.
 %
 %%%DEPENDENCIES:
 % fdr_bh.m
@@ -38,19 +45,19 @@ else
     ms_std=1;
 end
 
-p = 2*normcdf(-abs(z_mat),0,ms_std);
+p_unadj = 2*normcdf(-abs(z_mat),0,ms_std);
 
 %just to make sure that digonal won't be detected!!
-if itsamat; nn=size(p,1); p(1:nn+1:end) = 1; end
+if itsamat; nn=size(p_unadj,1); p_unadj(1:nn+1:end) = 1; end
 
-[p_fdrx,cv_fdr,adj_p] = fdr_bh(p(idx));
+[Hflag_fdrx,pval_cv_fdr,adj_p] = fdr_bh(p_unadj(idx));
 
 %matrix of adjusted p-values
-p_fdr       = zeros(size(p));
-p_fdr(idx)  = adj_p;
-p_fdr       = p_fdr+p_fdr';
+padj_fdr       = zeros(size(p_unadj));
+padj_fdr(idx)  = adj_p;
+padj_fdr       = padj_fdr+padj_fdr';
 
 %matrix of adjusted p-values - in binary
-h_fdr       = zeros(size(p));
-h_fdr(idx)  = p_fdrx;
+h_fdr       = zeros(size(p_unadj));
+h_fdr(idx)  = Hflag_fdrx;
 h_fdr       = h_fdr+h_fdr';
