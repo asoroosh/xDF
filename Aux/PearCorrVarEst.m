@@ -42,6 +42,10 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     acx_n      = flip(xcf(:,:,2:T-1),3);
     acx_p      = xcf(:,:,T+1:end-1);
 
+    %----MEMORY SAVE----
+    clear ts 
+    %-------------------
+    
     if sum(strcmpi(varargin,'taper'))
         mth = varargin{find(strcmpi(varargin,'taper'))+1};
         if strcmpi(mth,'tukey')
@@ -110,6 +114,9 @@ ASAt = [Tp                  .* (1-rho.^2).^2 ...
        + 2.* (rho.^2 + 1)   .* sum((wgtm3.*acx_n.*acx_p),3) ...         % 2 & 3
        - 2 .* rho           .* sum(wgtm3.*SumMat(ac,nLg).*(acx_n+acx_p),3)]./T.^2; %4 -- This this the only term which we can't seperate the AC and XC!
 
+%----MEMORY SAVE----
+clear wgtm3 acx_* ac 
+%-------------------
 
 %Keep your wit about you!
 TV = (1-rho.^2).^2./T;
