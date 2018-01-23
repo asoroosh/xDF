@@ -12,7 +12,7 @@ end
 ac        = AC_fft(Y,T);
 ac(:,[1 end]) = []; %remove the 0lag, we'll take care of it later.
 
-ac = curbtaperme(ac,T-2,round((T-2)/4)); %curb according to Pyper and Peterman
+ac = curbtaperme(ac,T-2,round((T-2)/5)); %curb according to Pyper and Peterman
 
 BCF       = 1+2.*(ac*ac');
 V         = BCF./T; %is it?
