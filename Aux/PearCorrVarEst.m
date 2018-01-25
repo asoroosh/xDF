@@ -101,8 +101,9 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
             for in=1:nn    
                 ac(in,:) = curbtaperme(ac(in,:),nLg,M);
                 for jn=1:nn 
-                    acx_n(in,jn,:) = curbtaperme(squeeze(acx_n(in,jn,:)),nLg,M);
-                    acx_p(in,jn,:) = curbtaperme(squeeze(acx_p(in,jn,:)),nLg,M);
+                    %size(squeeze(acx_n(in,jn,:))), nLg
+                    acx_n(in,jn,:) = curbtaperme(squeeze(acx_n(in,jn,:))',nLg,M);
+                    acx_p(in,jn,:) = curbtaperme(squeeze(acx_p(in,jn,:))',nLg,M);
                 end
             end
     %--------------------------------------------------------------------------
@@ -226,7 +227,7 @@ function ct_ts=curbtaperme(acs,T,M)
     ct_ts      = msk.*acs;
 end
 
-function tt_ts=tukeytaperme(ts,T,M)
+function tt_ts=tukeytaperme(acs,T,M)
 %performs Single Tukey Tapering for given length of window, M, and initial
 %value, intv. intv should only be used on crosscorrelation matrices.
 %
@@ -234,13 +235,14 @@ function tt_ts=tukeytaperme(ts,T,M)
 %remoeved it because we now start with the second elements of the ACF anyways. 
 %
 %SA, Ox, 2018
-    if ~sum(ismember(size(ts),T)); error('There is something wrong, mate!'); end
-    if size(ts,2) ~= T; ts = ts'; end
+    if ~sum(ismember(size(acs),T)); error('There is something wrong, mate!'); end
+    if size(acs,2) ~= T; acs = acs'; end
     %if ~exist('intv','var'); intv = 1; warning('Oi!'); end;
     M          = round(M);
-    tt_ts      = zeros(size(ts));
+    tt_ts      = zeros(size(acs));
     %tt_ts(:,1) = intv;
-    tt_ts(1:M) = (1+cos([1:M].*pi./M))./2.*ts(1:M);
+    tt_ts(1:M) = (1+cos([1:M].*pi./M))./2.*acs(1:M);
+    figure; plot(tt_ts); hold on; plot(acs); 
 end
 
 function sY=ShrinkPeriod(Y,WhichPeak)
