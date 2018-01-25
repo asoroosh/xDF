@@ -73,21 +73,34 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
             %disp('TAPER SHRINK')
             
             if M>1
-            for in=1:nn    
-                ac(in,:)  = ShrinkPeriod(ac(in,:),M);
-                for jn=1:nn 
-                    acx_n(in,jn,:) = ShrinkPeriod(acx_n(in,jn,:),M);
-                    acx_p(in,jn,:) = ShrinkPeriod(acx_p(in,jn,:),M);
-                end
-            end
-            
+                error('Not yet mate!')
+%                 for in=1:nn    
+%                     ac(in,:)  = ShrinkPeriod(ac(in,:),M);
+%                     for jn=1:nn 
+%                         acx_n(in,jn,:) = ShrinkPeriod(acx_n(in,jn,:),M);
+%                         acx_p(in,jn,:) = ShrinkPeriod(acx_p(in,jn,:),M);
+%                     end
+%                 end
             elseif M==1
-                for in=1:nn    
-                    ac(in,:)  = shrinkme(ac(in,:),nLg);
-                    for jn=1:nn 
-                        acx_n(in,jn,:) = shrinkme(squeeze(acx_n(in,jn,:)),nLg);
-                        acx_p(in,jn,:) = shrinkme(squeeze(acx_p(in,jn,:)),nLg);
+                
+                
+                for in=1:nn
+                    for jn=1:nn
+                        W2S(in,jn) = max([FindBreakPoint(ac(in,:),nLg) FindBreakPoint(ac(jn,:),nLg)]);
                     end
+                end
+                
+                for in=1:nn    
+                    ac(in,:)= shrinkme(ac(in,:),nLg);
+%                     for jn=1:nn 
+%                         acx_n(in,jn,:) = shrinkme(squeeze(acx_n(in,jn,:)),nLg);
+%                         acx_p(in,jn,:) = shrinkme(squeeze(acx_p(in,jn,:)),nLg);
+%                     end
+                    for jn=1:nn 
+                        acx_n(in,jn,:) = curbtaperme(squeeze(acx_n(in,jn,:)),nLg,W2S(in,jn));
+                        acx_p(in,jn,:) = curbtaperme(squeeze(acx_p(in,jn,:)),nLg,W2S(in,jn));
+                    end
+
                 end  
             else
                 error('What are you up to mate?!')
@@ -120,8 +133,8 @@ Tp      = T-1;
 
 ASAt = [Tp                  .* (1-rho.^2).^2 ...
        + rho.^2             .* sum(SumMat((wgtm2.*ac.^2),nLg),3) ...                % 1    -- AC 
-       + 2.* wgt            .* ac*ac'...                                            % 5    -- AC
-       + 2.* (rho.^2 + 1)   .* sum((wgtm3.*acx_n.*acx_p),3) ...                     %2 & 3 -- XC
+       + 2 .* wgt           .* ac*ac'...                                            % 5    -- AC
+       + 2 .* (rho.^2 + 1)  .* sum((wgtm3.*acx_n.*acx_p),3) ...                     %2 & 3 -- XC
        - 2 .* rho           .* sum(wgtm3.*SumMat(ac,nLg).*(acx_n+acx_p),3)]./T.^2;  %4 -- This this the only term which we can't seperate the AC and XC!
 
 %Stat.CR = (1+2.*wgt.*ac*ac')./T;   
@@ -148,10 +161,11 @@ r_pval  = 2 * normcdf(-abs(rz)); %both tails
 
 %Fisher's turf
 rf      = atanh(rho);
-sf      = ASAt./((1-rho.^2).^2);    %delta method
+sf      = ASAt./((1-rho.^2).^2);    %delta method; make sure the N is correct! So they cancelled out?!
 rzf     = rf./sqrt(sf);
 f_pval  = 2 .* normcdf(-abs(rzf));  %both tails
 %f_pval(1:nn+1:end) = 0;             %NaN screws up everything, so get rid of the diag, but becareful here. 
+
 %-------Stat
 
 Stat.p.r_Pval = r_pval;
@@ -160,6 +174,7 @@ Stat.p.f_Pval = f_pval;
 Stat.z.rz  = rz;
 Stat.z.rzf = rzf;
 
+Stat.W2S = W2S;
 end
 %--------------------------------------------------------------------------          
 
@@ -194,24 +209,42 @@ function srnkd_ts=shrinkme(acs,T)
 %SA, Ox, 2018
     if ~sum(ismember(size(acs),T)); error('There is something wrong, mate!'); end
     if size(acs,2) ~= T; acs = acs'; end
-        
-    bnd = (sqrt(2)*erfinv(0.95))./sqrt(T);
-    
-    idx = find(abs(acs)>bnd);
-    isit       = abs(acs)>bnd & (1:T);
-    where2stop = find(isit==0); %finds the break point -- intercept 
-    
+    %bnd = (sqrt(2)*erfinv(0.95))./sqrt(T);
+    %idx = find(abs(acs)>bnd);
+    %isit       = abs(acs)>bnd & (1:T);
+    %where2stop = find(isit==0); %finds the break point -- intercept 
     %BE CAREFUL:
     %this here is different from Toeplitz ME version, because here we don't
     %have the 0lag, but in that setting the 0lag is there and it is the
     %diag. 
-    if where2stop(1)==1 %if there was nothing above the CI...
+    where2stop = FindBreakPoint(acs,T);
+    
+    if ~where2stop %if there was nothing above the CI...
         srnkd_ts = zeros(1,T);
     else
-        where2stop = where2stop(1)-1; %-1 because we want to stop before intercept
+        % where2stop = where2stop(1)-1; %-1 because we want to stop before intercept
         % srnkd_ts   = tukeytaperme(ts,where2stop);
         srnkd_ts   = curbtaperme(acs,T,where2stop);
     end
+end
+
+function where2stop = FindBreakPoint(acs,T)
+% this finds the breaking points for shrinking the AC. 
+% Nothing serious, just might help with speed...
+% SA, Ox, 2018
+    if ~sum(ismember(size(acs),T)); error('There is something wrong, mate!'); end
+    if size(acs,2) ~= T; acs = acs'; end
+    
+    bnd        = (sqrt(2)*erfinv(0.95))./sqrt(T);
+    %idx        = find(abs(acs)>bnd);
+    isit       = abs(acs)>bnd & (1:T);
+    where2stop = find(isit==0); %finds the break point -- intercept 
+    
+    if where2stop(1)==1
+        where2stop = 0; 
+    else
+        where2stop = where2stop(1)-1; 
+    end;
 end
 
 function ct_ts=curbtaperme(acs,T,M)
@@ -219,7 +252,7 @@ function ct_ts=curbtaperme(acs,T,M)
 % multi-dimensional, and therefore is fine!
 %SA, Ox, 2018
     if ~sum(ismember(size(acs),T)); error('There is something wrong, mate!'); end
-    %if size(acs,2) ~= T; acs = acs'; end
+    if size(acs,2) ~= T; acs = acs'; end
     
     M          = round(M);
     msk        = zeros(size(acs));
