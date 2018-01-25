@@ -10,18 +10,16 @@ function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
     rho = (c(1,2));
     %Autocorr------------------------------------------------------------------
     [ac] = AC_fft(ts,T); %demean the time series
-    ac   = ac(:,1:T-1);
-    ac_x = ac(1,2:end);
-    ac_y = ac(2,2:end);
+    ac_x = ac(1,1:T-1);
+    ac_y = ac(2,1:T-1);
     %Cross-corr---------------------------------------------------------------- 
     [xcf,lags]  = crosscorr(ts(1,:),ts(2,:),T-1); %demean the time series
-    acx_n = fliplr(xcf(2:T-1));
-    acx_p = xcf(T+1:end-1);
+    acx_n = fliplr(xcf(2:T));
+    acx_p = xcf(T:end-1);
 
-    nLg     = T-2;        %if lag0 was the 0th element. Also, the ACF has T-1 dof. eh?  
     
-    %figure; hold on;  
-    %plot(acx_n)
+%     figure; hold on;  
+%     plot(acx_n); plot(acx_p)
     
     if sum(strcmpi(varargin,'taper'))
         mth = varargin{find(strcmpi(varargin,'taper'))+1};
@@ -43,18 +41,26 @@ function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
     %Shrinkage------------------------------------------------
         elseif strcmpi(mth,'shrink')
             M = round(varargin{find(strcmpi(varargin,'shrink'))+1});
+            
+            %disp('TAPER SHRINK')
+            
             if M>1
                 ac_x  = ShrinkPeriod(ac_x,M);
                 ac_y  = ShrinkPeriod(ac_y,M);
 
                 acx_n = ShrinkPeriod(acx_n,1);
                 acx_p = ShrinkPeriod(acx_p,1);
+                
             elseif M==1
-                ac_x  = shrinkme(ac_x,nLg);
-                ac_y  = shrinkme(ac_y,nLg);
+                ac_x  = shrinkme(ac_x,T-1);
+                ac_y  = shrinkme(ac_y,T-1);
+                
+                %figure; plot(ac_x); hold on; plot(ac_y); 
 
-                acx_n = shrinkme(acx_n,nLg);
-                acx_p = shrinkme(acx_p,nLg);    
+                acx_n = shrinkme(acx_n,T-1);
+                acx_p = shrinkme(acx_p,T-1);    
+                
+                %figure; plot(acx_n); hold on; plot(acx_p); 
             else
                 error('What are you up to mate?!')
             end
@@ -74,50 +80,65 @@ function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
     end
     %plot(acx_n)
     
-%     Sigma_x  = toeplitz(ac_x);
-%     Sigma_y  = toeplitz(ac_y);
-%     Sigma_xy = triu(toeplitz(acx_n))+tril(toeplitz(acx_p),-1);
-% 
-%     %-------ME
-%     SigX2     = trace(Sigma_x ^2);
-%     SigY2     = trace(Sigma_y ^2);
-%     SigXSigY  = trace(Sigma_x * Sigma_y);
-%     SigXY2    = trace(Sigma_xy^2);
-%     SigXSigXY = trace(Sigma_x * Sigma_xy);
-%     SigYSigXY = trace(Sigma_y * Sigma_xy);
-% 
-%     ASAt      = ((rho.^2./2) .* SigX2... 
-%                 +(rho.^2./2) .* SigY2...
-%                 +rho.^2      .* SigXY2...
-%                 -2.*rho      .* SigXSigXY...
-%                 -2.*rho      .* SigYSigXY... 
-%                 +SigXSigY...
-%                 +SigXY2)./T.^2;
-%     Stat.ME.trSigX2       = SigX2;
-%     Stat.ME.trSigY2       = SigY2;
-%     Stat.ME.trSigXSigY    = SigXSigY;
-%     Stat.ME.trSigXY2      = SigXY2; 
-%     Stat.ME.trSigXSigXY   = SigXSigXY;
-%     Stat.ME.trSigYSigXY   = SigYSigXY; 
-%     Stat.CnR=SigXSigY./T^2; %just to check how bad the others are doing!
+    Sigma_x  = toeplitz(ac_x);
+    Sigma_y  = toeplitz(ac_y);
+    Sigma_xy = triu(toeplitz(acx_n))+tril(toeplitz(acx_p),-1);
 
+    %-------ME
+    SigX2     = trace(Sigma_x ^2);
+    SigY2     = trace(Sigma_y ^2);
+    SigXSigY  = trace(Sigma_x * Sigma_y);
+    SigXY2    = trace(Sigma_xy^2);
+    SigXSigXY = trace(Sigma_x * Sigma_xy);
+    SigYSigXY = trace(Sigma_y * Sigma_xy);
+
+    ASAt      = ((rho.^2./2) .* SigX2... 
+                +(rho.^2./2) .* SigY2...
+                +rho.^2      .* SigXY2...
+                -2.*rho      .* SigXSigXY...
+                -2.*rho      .* SigYSigXY... 
+                +SigXSigY...
+                +SigXY2)./T.^2;
+            
+    Stat.ME.trSigX2       = SigX2;
+    Stat.ME.trSigY2       = SigY2;
+    Stat.ME.trSigXSigY    = SigXSigY;
+    Stat.ME.trSigXY2      = SigXY2; 
+    Stat.ME.trSigXSigXY   = SigXSigXY;
+    Stat.ME.trSigYSigXY   = SigYSigXY; 
+    Stat.CnR=SigXSigY./T^2; %just to check how bad the others are doing!
+
+
+%%%%%%%THIS THIS BULLSHT!    
+%ASAt    
 %-----ME, but damn faster this time!
-wgt     = (nLg:-1:1);
-Tp      = T-1;
-LAMBDAX = ac_x (1:end);
-LAMBDAY = ac_y (1:end);
-RHOp    = acx_p(1:end);
-RHOn    = acx_n(1:end);
+% nLg     = T-2;        %if lag0 was the 0th element. Also, the ACF has T-1 dof. eh?  
+% 
+% wgt     = (nLg:-1:1);
+% Tp      = T-1;
+% 
+% LAMBDAX = ac_x (2:end);
+% LAMBDAY = ac_y (2:end);
+% RHOp    = acx_p(2:end);
+% RHOn    = acx_n(2:end);
 
-ASAt = [Tp*(1-rho.^2).^2 ...
-    + rho.^2 * sum( wgt .* (LAMBDAX.^2 + LAMBDAY.^2 + 2*RHOp.*RHOn))...
-    - 2 * rho* sum( wgt .* (RHOp+RHOn) .* (LAMBDAX+LAMBDAY))...
-    + 2 *      sum( wgt .* (RHOp.*RHOn  + LAMBDAX.*LAMBDAY))]./T.^2;
+% size(LAMBDAX),size(LAMBDAY),size(RHOp),size(RHOn)
+
+% ASAt = [Tp*(1-rho.^2).^2 ...
+%     + rho.^2 * sum( wgt .* (LAMBDAX.^2 + LAMBDAY.^2 + 2*RHOp.*RHOn))...
+%     - 2 * rho* sum( wgt .* (RHOp+RHOn) .* (LAMBDAX+LAMBDAY))...
+%     + 2 *      sum( wgt .* (RHOp.*RHOn  + LAMBDAX.*LAMBDAY))]./T.^2;
+%%%%%%%THIS THIS BULLSHT!  
+
 
 %Keep your wit about you!
 TV = (1-rho.^2).^2./T;
-if ASAt<TV; ASAt=TV; end; 
 
+%ASAt
+
+if ASAt<TV
+    ASAt=TV; 
+end; 
     %------- Test Stat
     %Pearson's turf
     rz     = rho./sqrt((ASAt));    %abs(ASAt), because it is possible to get negative ASAt!
@@ -158,7 +179,7 @@ function srnkd_ts=shrinkme(ts,T)
     idx = find(abs(ts)>bnd);
     isit       = abs(ts)>bnd & (1:T);
     where2stop = find(isit==0);
-    where2stop = where2stop(1);
+    where2stop = where2stop(1)-1; %-1 because we want to stop before intercept
     % srnkd_ts   = tukeytaperme(ts,where2stop);
     srnkd_ts   = curbtaperme(ts,where2stop);
 end

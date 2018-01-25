@@ -36,12 +36,16 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     %Autocorr------------------------------------------------------------------
     [ac] = AC_fft(ts,T); %demean the time series
     ac   = ac(:,2:T-1);
-    nLg     = T-2;       %if lag0 was the 0th element. Also, the ACF has T-1 dof. eh?  
+    
+    nLg  = T-2;       %if lag0 was the 0th element. Also, the ACF has T-1 dof. eh?  
     %Cross-corr---------------------------------------------------------------- 
     [xcf,lags] = xC_fft(ts,T);
     acx_n      = flip(xcf(:,:,2:T-1),3);
     acx_p      = xcf(:,:,T+1:end-1);
-
+    
+    %figure; plot(ac')
+    %figure; plot(squeeze(acx_n(1,2,:))); hold on; plot(squeeze(acx_p(1,2,:)));  
+    
     %----MEMORY SAVE----
     clear ts 
     %-------------------
@@ -61,9 +65,12 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
                     acx_p(in,jn,:) = tukeytaperme(squeeze(acx_p(in,jn,:)),nLg,M);
                 end
             end
+            
     %Shrinking------------------------------------------------
         elseif strcmpi(mth,'shrink')
             M = round(varargin{find(strcmpi(varargin,'shrink'))+1});
+            
+            %disp('TAPER SHRINK')
             
             if M>1
             for in=1:nn    
@@ -85,6 +92,8 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
             else
                 error('What are you up to mate?!')
             end
+            %figure; plot(squeeze(acx_n(1,2,:))); hold on; plot(squeeze(acx_p(1,2,:)));             
+            %figure; plot(ac(1,:)); hold on; plot(ac(2,:));
     %Curbing------------------------------------------------
         elseif strcmpi(mth,'curb')
             M = round(varargin{find(strcmpi(varargin,'curb'))+1});
@@ -109,11 +118,12 @@ wgtm2   = repmat(wgt,[nn,1]);
 Tp      = T-1;
 
 ASAt = [Tp                  .* (1-rho.^2).^2 ...
-       + rho.^2             .* sum(SumMat((wgtm2.*ac.^2),nLg),3) ...    % 1
-       + 2.* wgt            .* ac*ac'...                                % 5    
-       + 2.* (rho.^2 + 1)   .* sum((wgtm3.*acx_n.*acx_p),3) ...         % 2 & 3
-       - 2 .* rho           .* sum(wgtm3.*SumMat(ac,nLg).*(acx_n+acx_p),3)]./T.^2; %4 -- This this the only term which we can't seperate the AC and XC!
+       + rho.^2             .* sum(SumMat((wgtm2.*ac.^2),nLg),3) ...                % 1    -- AC 
+       + 2.* wgt            .* ac*ac'...                                            % 5    -- AC
+       + 2.* (rho.^2 + 1)   .* sum((wgtm3.*acx_n.*acx_p),3) ...                     %2 & 3 -- XC
+       - 2 .* rho           .* sum(wgtm3.*SumMat(ac,nLg).*(acx_n+acx_p),3)]./T.^2;  %4 -- This this the only term which we can't seperate the AC and XC!
 
+%Stat.CR = (1+2.*wgt.*ac*ac')./T;   
 %----MEMORY SAVE----
 clear wgtm3 acx_* ac 
 %-------------------
@@ -126,8 +136,8 @@ if sum(sum(ASAt < TV))
 end  
  
 % diagonal is rubbish;
-ASAt(1:nn+1:end) = 0;  
- 
+ASAt(1:nn+1:end) = 0;
+
 %------- Test Stat
 %Pearson's turf
 rz      = rho./sqrt((ASAt));     %abs(ASAt), because it is possible to get negative ASAt!
@@ -175,33 +185,45 @@ end
 
 %--------------------------------------------------------------------------
 
-function srnkd_ts=shrinkme(ts,T)
+function srnkd_ts=shrinkme(acs,T)
 %Shrinks the *early* bucnhes of autocorr coefficients beyond the CI.
+%Yo! this should be transformed to the matrix form, those fors at the top
+%are bleak!
+%
 %SA, Ox, 2018
-    if ~sum(ismember(size(ts),T)); error('There is something wrong, mate!'); end
-    if size(ts,2) ~= T; ts = ts'; end
+    if ~sum(ismember(size(acs),T)); error('There is something wrong, mate!'); end
+    if size(acs,2) ~= T; acs = acs'; end
         
     bnd = (sqrt(2)*erfinv(0.95))./sqrt(T);
     
-    idx = find(abs(ts)>bnd);
-    isit       = abs(ts)>bnd & (1:T);
-    where2stop = find(isit==0);
-    where2stop = where2stop(1);
-    % srnkd_ts   = tukeytaperme(ts,where2stop);
-    srnkd_ts   = curbtaperme(ts,T,where2stop);
+    idx = find(abs(acs)>bnd);
+    isit       = abs(acs)>bnd & (1:T);
+    where2stop = find(isit==0); %finds the break point -- intercept 
+    
+    %BE CAREFUL:
+    %this here is different from Toeplitz ME version, because here we don't
+    %have the 0lag, but in that setting the 0lag is there and it is the
+    %diag. 
+    if where2stop(1)==1 %if there was nothing above the CI...
+        srnkd_ts = zeros(1,T);
+    else
+        where2stop = where2stop(1)-1; %-1 because we want to stop before intercept
+        % srnkd_ts   = tukeytaperme(ts,where2stop);
+        srnkd_ts   = curbtaperme(acs,T,where2stop);
+    end
 end
 
-function ct_ts=curbtaperme(ts,T,M)
+function ct_ts=curbtaperme(acs,T,M)
 % Curb the autocorrelations, according to Anderson 1984
 % multi-dimensional, and therefore is fine!
 %SA, Ox, 2018
-    if ~sum(ismember(size(ts),T)); error('There is something wrong, mate!'); end
-    if size(ts,2) ~= T; ts = ts'; end
+    if ~sum(ismember(size(acs),T)); error('There is something wrong, mate!'); end
+    %if size(acs,2) ~= T; acs = acs'; end
     
     M          = round(M);
-    msk        = zeros(size(ts));
+    msk        = zeros(size(acs));
     msk(:,1:M) = 1;
-    ct_ts      = msk.*ts;
+    ct_ts      = msk.*acs;
 end
 
 function tt_ts=tukeytaperme(ts,T,M)
