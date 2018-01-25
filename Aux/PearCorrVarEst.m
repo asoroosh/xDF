@@ -242,7 +242,7 @@ function tt_ts=tukeytaperme(acs,T,M)
     tt_ts      = zeros(size(acs));
     %tt_ts(:,1) = intv;
     tt_ts(1:M) = (1+cos([1:M].*pi./M))./2.*acs(1:M);
-    figure; plot(tt_ts); hold on; plot(acs); 
+    %figure; plot(tt_ts); hold on; plot(acs); 
 end
 
 function sY=ShrinkPeriod(Y,WhichPeak)
