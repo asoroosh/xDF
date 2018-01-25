@@ -27,6 +27,9 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
         ts = ts';
         warning('Oi!')
     end
+    
+    W2S = [];
+    
     nn  = size(ts,1);
     %ts  = dtrend(ts);
     ts  = ts./std(ts,[],2); %standardise
@@ -45,7 +48,6 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     
     %figure; plot(ac')
     %figure; plot(squeeze(acx_n(1,2,:))); hold on; plot(squeeze(acx_p(1,2,:)));  
-    
     %----MEMORY SAVE----
     clear ts 
     %-------------------
