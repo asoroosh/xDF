@@ -130,12 +130,13 @@ clear wgtm3 acx_* ac
 %-------------------
 
 %Keep your wit about you!
-TV = (1-rho.^2).^2./T;
-if sum(sum(ASAt < TV)) 
- idx_ex       = find(ASAt < TV);
- ASAt(idx_ex) = TV(idx_ex);
-end  
- 
+% TV = (1-rho.^2).^2./T;
+% if sum(sum(ASAt < TV)) 
+%  idx_ex       = find(ASAt < TV);
+%  ASAt(idx_ex) = TV(idx_ex);
+% end  
+% Stat.TV    = TV;
+
 % diagonal is rubbish;
 ASAt(1:nn+1:end) = 0;
 
@@ -159,7 +160,6 @@ Stat.p.f_Pval = f_pval;
 Stat.z.rz  = rz;
 Stat.z.rzf = rzf;
 
-Stat.TV    = TV;
 end
 %--------------------------------------------------------------------------          
 
