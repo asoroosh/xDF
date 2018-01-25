@@ -22,7 +22,12 @@ d   = diag(Kx*Ky');
 as  = min(d);
 rho = rho.*as;
 
+
 Sigma_xy = rho.*((Kx*Ky')./as);
+
+figure; imagesc(Sigma_xy)
+
+%Sigma_xy(1:20,1:20)
 
 % figure; plot(d); hold on; plot(diag((Kx*Ky')./as)); hold off; 
 % figure; 

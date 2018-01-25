@@ -52,13 +52,17 @@ function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
                 acx_p = ShrinkPeriod(acx_p,1);
                 
             elseif M==1
-                ac_x  = shrinkme(ac_x,T-1);
-                ac_y  = shrinkme(ac_y,T-1);
+                [ac_x,w2s0] = shrinkme(ac_x,T-1);
+                [ac_y,w2s1] = shrinkme(ac_y,T-1);
+                
+                w2s = max([w2s0 w2s1]);
                 
                 %figure; plot(ac_x); hold on; plot(ac_y); 
-
-                acx_n = shrinkme(acx_n,T-1);
-                acx_p = shrinkme(acx_p,T-1);    
+                
+                acx_n = curbtaperme(acx_n,w2s);
+                acx_p = curbtaperme(acx_p,w2s);
+                %acx_n = shrinkme(acx_n,T-1);
+                %acx_p = shrinkme(acx_p,T-1);    
                 
                 %figure; plot(acx_n); hold on; plot(acx_p); 
             else
@@ -136,9 +140,9 @@ TV = (1-rho.^2).^2./T;
 
 %ASAt
 
-if ASAt<TV
-    ASAt=TV; 
-end; 
+% if ASAt<TV
+%     ASAt=TV; 
+% end; 
     %------- Test Stat
     %Pearson's turf
     rz     = rho./sqrt((ASAt));    %abs(ASAt), because it is possible to get negative ASAt!
@@ -169,7 +173,7 @@ end
 %     % srnkd_ts   = tukeytaperme(ts,where2stop);
 %     srnkd_ts   = curbtaperme(ts,where2stop);
 % end
-function srnkd_ts=shrinkme(ts,T)
+function [srnkd_ts where2stop]=shrinkme(ts,T)
 %Shrinks the *early* bucnhes of autocorr coefficients beyond the CI.
     if ~sum(ismember(size(ts),T)); error('There is something wrong, mate!'); end
     if size(ts,2) ~= T; ts = ts'; end
