@@ -1,8 +1,37 @@
 function [V,Z,P,BCF] = CheltonBCF(Y,T)
-% The way that Pyper says is right!
-% it is fast function i.e. more than 2 time series are accptable for input 
 %
-% SA, Ox, 2018
+%%%INPUTS
+%   Y : Time series.
+%   T : #data points, just for sanity check
+%
+%%%OUTPUTS
+%   V : Variance
+%   Z : Z-score (via Fisher's transformation)
+%   P : p-value (two-sided on a-level: 5%)
+%   BCF : Correction Factor for effective degrees of freedom
+%
+%%%REFERENCE
+%   Bartlett, M. S. (1946). On the Theoretical Specification and Sampling 
+%   Properties of Autocorrelated Time-Series. Supplement to the Journal of 
+%   the Royal Statistical Society, 8(1), 27. http://doi.org/10.2307/2983611
+%   
+%   Quenouille, M. H. (1947). Notes on the Calculation of Autocorrelations 
+%   of Linear Autoregressive Schemes. Biometrika, 34(3/4), 365. 
+%   http://doi.org/10.2307/2332450
+%
+%   Bayley, G. V., & Hammersley, J. M. (1946). The ?Effective? Number of 
+%   Independent Observations in an Autocorrelated Time Series. Supplement 
+%   to the Journal of the Royal Statistical Society, 8(2), 184. 
+%   http://doi.org/10.2307/2983560
+%
+%   Pyper, B. J., & Peterman, R. M. (1998). Comparison of methods to 
+%   account for autocorrelation in correlation analyses of fish data, 
+%   2140, 2127?2140.
+%_________________________________________________________________________
+% Soroosh Afyouni, University of Oxford, 2018
+% srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
 
 CF = 1;
 

@@ -2,7 +2,41 @@ function [V,Z,P,BCF] = CRBCF(Y,T)
 % The way that Pyper says is right!
 % it is fast function i.e. more than 2 time series are accptable for input 
 %
-% SA, Ox, 2018
+%%%INPUTS
+%   Y : Time series.
+%   T : #data points, just for sanity check
+%
+%%%OUTPUTS
+%   V : Variance
+%   Z : Z-score (via Fisher's transformation)
+%   P : p-value (two-sided on a-level: 5%)
+%   BCF : Correction Factor for effective degrees of freedom
+%
+%%%REFERENCE
+%   Bartlett, M. S. (1946). On the Theoretical Specification and Sampling 
+%   Properties of Autocorrelated Time-Series. Supplement to the Journal of 
+%   the Royal Statistical Society, 8(1), 27. http://doi.org/10.2307/2983611
+%
+%   Clifford, P., Richardson, S., & Hemon, D. (2016). 
+%   Assessing the Significance of the Correlation between Two Spatial 
+%   Processes Author ( s ): Peter Clifford , Sylvia Richardson and Denis 
+%   Hemon Published by : International Biometric Society Stable 
+%   URL : http://www.jstor.org/stable/2532039 
+%   REFERENCES Linked , 45(1), 123?134.
+%
+%   Bayley, G. V., & Hammersley, J. M. (1946). The ?Effective? Number of 
+%   Independent Observations in an Autocorrelated Time Series. Supplement 
+%   to the Journal of the Royal Statistical Society, 8(2), 184. 
+%   http://doi.org/10.2307/2983560
+%
+%   Pyper, B. J., & Peterman, R. M. (1998). Comparison of methods to 
+%   account for autocorrelation in correlation analyses of fish data, 
+%   2140, 2127?2140.
+%_________________________________________________________________________
+% Soroosh Afyouni, University of Oxford, 2018
+% srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
 
 CF = 1; 
 
