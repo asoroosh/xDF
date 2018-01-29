@@ -30,7 +30,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
         warning('Oi!')
     end
     
-    W2S = [];
+    W2S = []; 
     
     nn  = size(ts,1);
     %ts  = dtrend(ts);
@@ -148,10 +148,10 @@ clear wgtm3 acx_* ac
 
 %Keep your wit about you!
 TV = (1-rho.^2).^2./T;
-if sum(sum(ASAt < TV)) 
- idx_ex       = find(ASAt < TV);
- ASAt(idx_ex) = TV(idx_ex);
-end  
+% if sum(sum(ASAt < TV)) 
+%  idx_ex       = find(ASAt < TV);
+%  ASAt(idx_ex) = TV(idx_ex);
+% end  
 Stat.TV    = TV;
 
 % diagonal is rubbish;
