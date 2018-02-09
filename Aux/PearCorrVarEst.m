@@ -148,19 +148,19 @@ clear wgtm3 acx_* ac
 
 %Keep your wit about you!
 TV = (1-rho.^2).^2./T;
-% if sum(sum(ASAt < TV)) 
-%  idx_ex       = find(ASAt < TV);
-%  ASAt(idx_ex) = TV(idx_ex);
-% end  
+if sum(sum(ASAt < TV)) 
+ idx_ex       = find(ASAt < TV);
+ ASAt(idx_ex) = TV(idx_ex);
+end  
 Stat.TV    = TV;
 
 % diagonal is rubbish;
 ASAt(1:nn+1:end) = 0;
 
 %------- Test Stat
-%Pearson's turf
-rz      = rho./sqrt((ASAt));     %abs(ASAt), because it is possible to get negative ASAt!
-r_pval  = 2 * normcdf(-abs(rz)); %both tails
+%Pearson's turf -- We don't really wanna go there, eh?
+%rz      = rho./sqrt((ASAt));     %abs(ASAt), because it is possible to get negative ASAt!
+%r_pval  = 2 * normcdf(-abs(rz)); %both tails
 %r_pval(1:nn+1:end) = 0;          %NaN screws up everything, so get rid of the diag, but becareful here. 
 
 %Fisher's turf
@@ -172,10 +172,10 @@ f_pval  = 2 .* normcdf(-abs(rzf));  %both tails
 
 %-------Stat
 
-Stat.p.r_Pval = r_pval;
+%Stat.p.r_Pval = r_pval;
 Stat.p.f_Pval = f_pval;
 
-Stat.z.rz  = rz;
+%Stat.z.rz  = rz;
 Stat.z.rzf = rzf;
 
 Stat.W2S = W2S;
