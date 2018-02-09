@@ -52,7 +52,7 @@ ac = curbtaperme(ac,T-2,round((T-2)./CF)); %curb according to Pyper and Peterman
 nLg    = T-1;
 wgt    = (nLg:-1:2)./(T);
 
-BCF       = 1+2.*(wgt.*ac*ac');
+BCF    = 1+2.*(wgt.*ac*ac');
 
 if any(any(BCF>T))
     BCF (BCF>T) = T;

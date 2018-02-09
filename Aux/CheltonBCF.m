@@ -1,4 +1,10 @@
 function [V,Z,P,BCF] = CheltonBCF(Y,T)
+% Estimating and correcting the degrees of freedom based on approximations
+% presented in Barteltt's 1946 and Quenouille's 1947.
+%
+% Pyper calls this Chelton's method, but I can't find the paper for the
+% life of me and the equation is identical to the Bartlett's. Also,
+% Bartlett's paper is much older than Chelton's.
 %
 %%%INPUTS
 %   Y : Time series.
