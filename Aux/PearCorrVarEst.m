@@ -7,7 +7,9 @@ function [ASAt,Stat]=PearCorrVarEst(ts,T,varargin)
 %
 %   Optionals:
 %   'taper' : uses a tapering method to denoise AC functions
-%    
+%   'TVOff' : if an estimate exceeed the theoritical variance of a white
+%   noise then it curbs the estimate back to (1-rho^2)^2/T. If you want it
+%   off, trigger 'TVOff'
 %%%OUTPUTS:
 %   ASAt : a 2D matrix of size IxI with diagonal set to zero
 %   Stat : Contains every other non very important stuff!
@@ -30,7 +32,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
         warning('Oi!')
     end
     
-    W2S = []; 
+    W2S = []; TVflag = 1;
     
     nn  = size(ts,1);
     %ts  = dtrend(ts);
@@ -44,7 +46,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     
     nLg  = T-2;       %if lag0 was the 0th element. Also, the ACF has T-1 dof. eh?  
     %Cross-corr---------------------------------------------------------------- 
-    [xcf,lags] = xC_fft(ts,T);
+    xcf = xC_fft(ts,T);
     acx_n      = flip(xcf(:,:,2:T-1),3);
     acx_p      = xcf(:,:,T+1:end-1);
     
@@ -53,6 +55,11 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     %----MEMORY SAVE----
     clear ts 
     %-------------------
+    
+    if sum(strcmpi(varargin,'TVOff'))
+        %disp('Anything beyond theoritical variance is curbed.')
+        TVflag = 0;
+    end    
     
     if sum(strcmpi(varargin,'taper'))
         mth = varargin{find(strcmpi(varargin,'taper'))+1};
@@ -148,10 +155,10 @@ clear wgtm3 acx_* ac
 
 %Keep your wit about you!
 TV = (1-rho.^2).^2./T;
-% if sum(sum(ASAt < TV)) 
-%  idx_ex       = find(ASAt < TV);
-%  ASAt(idx_ex) = TV(idx_ex);
-% end  
+if sum(sum(ASAt < TV)) && TVflag
+ idx_ex       = find(ASAt < TV);
+ ASAt(idx_ex) = TV(idx_ex);
+end  
 Stat.TV    = TV;
 
 % diagonal is rubbish;
@@ -163,10 +170,11 @@ ASAt(1:nn+1:end) = 0;
 %r_pval  = 2 * normcdf(-abs(rz)); %both tails
 %r_pval(1:nn+1:end) = 0;          %NaN screws up everything, so get rid of the diag, but becareful here. 
 
-%Fisher's turf
+%Our turf!
 rf      = atanh(rho);
 sf      = ASAt./((1-rho.^2).^2);    %delta method; make sure the N is correct! So they cancelled out?!
 rzf     = rf./sqrt(sf);
+rzf(1:nn+1:end) = 0;
 f_pval  = 2 .* normcdf(-abs(rzf));  %both tails
 %f_pval(1:nn+1:end) = 0;             %NaN screws up everything, so get rid of the diag, but becareful here. 
 
