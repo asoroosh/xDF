@@ -44,6 +44,8 @@ if size(Y,1)~=T
     Y=Y'; %IxT
 end
 
+N = size(Y,1);
+
 ac        = AC_fft(Y,T);
 ac(:,[1 end]) = []; %remove the 0lag, we'll take care of it later.
 
@@ -60,10 +62,10 @@ end
 
 %atanh(corr(Y)).*sqrt(T./BCF-3)
 
-V         = BCF./T; %is it?
-Z         = atanh(corr(Y)).*sqrt(T./BCF-3);
-P         = 2 * normcdf(-abs(Z));
-
+V            = BCF./T; %is it?
+Z            = atanh(corr(Y)).*sqrt(T./BCF-3);
+P            = 2 * normcdf(-abs(Z));
+P(1:N+1:end) = 1; 
 end
 
 function ct_ts=curbtaperme(ts,T,M)

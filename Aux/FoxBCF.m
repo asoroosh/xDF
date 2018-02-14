@@ -1,4 +1,4 @@
-function [Z,BCF] = FoxBCF(Y,T)
+function [Z,BCF,P] = FoxBCF(Y,T)
 % The way that Fox and VanDjk estimate the BCF; i.e. Integral [sci] of ACFs 
 % Fox et al 2005 and VanDijek 200X
 %
@@ -43,3 +43,4 @@ ac(:,end) = [];
 BCF       = sum(ac.^2,2);
 BCF       = mean(BCF);
 Z         = atanh(corr(Y)).*sqrt(T./BCF-3);
+P         = 2 * normcdf(-abs(Z)); 

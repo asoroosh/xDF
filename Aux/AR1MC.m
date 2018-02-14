@@ -1,4 +1,4 @@
-function [V,Z,R2Zcrt,arone]=AR1MC(Y,T)
+function [V,Z,P,R2Zcrt,arone]=AR1MC(Y,T)
 % This function is AR(1) Monte-Carlo estimation of unbiased variance. 
 % Copy-pasted from FSLnets toolbox. 
 %
@@ -45,4 +45,6 @@ Yrc     = corr(Yr);
 V       = var(Yrc(IDX));
 R2Zcrt  = 1./std(atanh(Yrc(IDX))); %SA: what?! so what happened to sqrt(T-3)?!
 Z       = atanh(netmat).*R2Zcrt;
+
+P       = 2 * normcdf(-abs(Z)); 
 

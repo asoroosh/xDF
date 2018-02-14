@@ -176,7 +176,7 @@ sf      = ASAt./((1-rho.^2).^2);    %delta method; make sure the N is correct! S
 rzf     = rf./sqrt(sf);
 rzf(1:nn+1:end) = 0;
 f_pval  = 2 .* normcdf(-abs(rzf));  %both tails
-%f_pval(1:nn+1:end) = 0;             %NaN screws up everything, so get rid of the diag, but becareful here. 
+f_pval(1:nn+1:end) = 0;             %NaN screws up everything, so get rid of the diag, but becareful here. 
 
 %-------Stat
 

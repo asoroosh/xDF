@@ -54,7 +54,7 @@ ac = curbtaperme(ac,T-2,round((T-2)./CF)); %curb according to Pyper and Peterman
 BCF       = 1+2.*(ac*ac');
 V         = BCF./T; %is it?
 Z         = atanh(corr(Y)).*sqrt(T./BCF-3);
-P         = 2 * normcdf(-abs(Z));
+P         = 2 * normcdf(-abs(Z));  
 
 end
 
