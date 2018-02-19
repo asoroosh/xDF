@@ -40,8 +40,8 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 
 CF = 1; 
 
-if size(Y,1)~=T
-    Y=Y'; %IxT
+if size(Y,2)~=T
+    Y=Y'; %TxI
 end
 
 N = size(Y,1);
@@ -63,7 +63,10 @@ end
 %atanh(corr(Y)).*sqrt(T./BCF-3)
 
 V            = BCF./T; %is it?
-Z            = atanh(corr(Y)).*sqrt(T./BCF-3);
+
+Z            = atanh(corr(Y')).*sqrt(T./BCF-3);
+Z(1:N+1:end) = 0;
+
 P            = 2 * normcdf(-abs(Z));
 P(1:N+1:end) = 1; 
 end
