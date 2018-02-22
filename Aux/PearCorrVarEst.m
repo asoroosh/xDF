@@ -138,7 +138,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
    
 %Crazy, eh?
 wgt     = (nLg:-1:1);
-wgtm3   = reshape(repmat((repmat(wgt,[nn,1])),[nn,1]),[nn,nn,numel(wgt)]);
+wgtm3   = reshape(repmat((repmat(wgt,[nn,1])),[nn,1]),[nn,nn,numel(wgt)]); %this is shit, eats all the memory!
 wgtm2   = repmat(wgt,[nn,1]);
 Tp      = T-1;
 
@@ -148,7 +148,6 @@ ASAt = [Tp                  .* (1-rho.^2).^2 ...
        + 2 .* (rho.^2 + 1)  .* sum((wgtm3.*acx_n.*acx_p),3) ...                     %2 & 3 -- XC
        - 2 .* rho           .* sum(wgtm3.*SumMat(ac,nLg).*(acx_n+acx_p),3)]./T.^2;  %4 -- This this the only term which we can't seperate the AC and XC!
 
-%Stat.CR = (1+2.*wgt.*ac*ac')./T;   
 %----MEMORY SAVE----
 clear wgtm3 acx_* ac 
 %-------------------
@@ -164,13 +163,13 @@ Stat.TV    = TV;
 % diagonal is rubbish;
 ASAt(1:nn+1:end) = 0;
 
-%------- Test Stat
+%------- Test Stat-----------------------
 %Pearson's turf -- We don't really wanna go there, eh?
 %rz      = rho./sqrt((ASAt));     %abs(ASAt), because it is possible to get negative ASAt!
 %r_pval  = 2 * normcdf(-abs(rz)); %both tails
 %r_pval(1:nn+1:end) = 0;          %NaN screws up everything, so get rid of the diag, but becareful here. 
 
-%Our turf!
+%Our turf--------------------------------
 rf      = atanh(rho);
 sf      = ASAt./((1-rho.^2).^2);    %delta method; make sure the N is correct! So they cancelled out?!
 rzf     = rf./sqrt(sf);
@@ -178,14 +177,20 @@ rzf(1:nn+1:end) = 0;
 f_pval  = 2 .* normcdf(-abs(rzf));  %both tails
 f_pval(1:nn+1:end) = 0;             %NaN screws up everything, so get rid of the diag, but becareful here. 
 
-%-------Stat
-
-%Stat.p.r_Pval = r_pval;
+Stat.z.rzf = rzf;
 Stat.p.f_Pval = f_pval;
 
-%Stat.z.rz  = rz;
-Stat.z.rzf = rzf;
+%Fisher's turf---------------------------
+rf          = atanh(rho);
+edf         = 1./ASAt;                          %Effective Degrees of Freedom
+rzfish      = rf.*sqrt(edf-3);
+rzfish(1:nn+1:end)  = 0;
+f_pval_fish         = 2 .* normcdf(-abs(rzfish));  %both tails
+f_pval_fish(1:nn+1:end) = 0;                %NaN screws up everything, so get rid of the diag, but becareful here. 
 
+Stat.z.rzfish = rzfish;
+Stat.p.f_PvalFish = f_pval_fish;
+%-------Stat-----------------------------
 Stat.W2S = W2S;
 end
 %--------------------------------------------------------------------------          
