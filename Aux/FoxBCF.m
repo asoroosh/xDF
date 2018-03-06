@@ -40,7 +40,7 @@ end
 
 ac        = AC_fft(Y,T);
 ac(:,end) = [];
-BCF       = sum(ac.^2,2);
+BCF       = 1+2*sum(ac.^2,2);
 BCF       = mean(BCF);
 Z         = atanh(corr(Y)).*sqrt(T./BCF-3);
 P         = 2 * normcdf(-abs(Z)); 
