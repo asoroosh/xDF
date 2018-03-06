@@ -55,9 +55,10 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     %----MEMORY SAVE----
     clear ts 
     %-------------------
+        
     
     if sum(strcmpi(varargin,'TVOff'))
-        %disp('Anything beyond theoritical variance is curbed.')
+        %disp('Anything beyond theoritical variance is forced down to theoritical variance (1-rho^2)^2.')
         TVflag = 0;
     end    
     
@@ -136,6 +137,8 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
         end
     end
    
+    
+    
 %Crazy, eh?
 wgt     = (nLg:-1:1);
 wgtm3   = reshape(repmat((repmat(wgt,[nn,1])),[nn,1]),[nn,nn,numel(wgt)]); %this is shit, eats all the memory!
@@ -181,15 +184,15 @@ Stat.z.rzf = rzf;
 Stat.p.f_Pval = f_pval;
 
 %Fisher's turf---------------------------
-rf          = atanh(rho);
-edf         = 1./ASAt;                          %Effective Degrees of Freedom
-rzfish      = rf.*sqrt(edf-3);
-rzfish(1:nn+1:end)  = 0;
-f_pval_fish         = 2 .* normcdf(-abs(rzfish));  %both tails
-f_pval_fish(1:nn+1:end) = 0;                %NaN screws up everything, so get rid of the diag, but becareful here. 
-
-Stat.z.rzfish = rzfish;
-Stat.p.f_PvalFish = f_pval_fish;
+% rf          = atanh(rho);
+% edf         = 1./ASAt;                          %Effective Degrees of Freedom
+% rzfish      = rf.*sqrt(edf-3);
+% rzfish(1:nn+1:end)  = 0;
+% f_pval_fish         = 2 .* normcdf(-abs(rzfish));  %both tails
+% f_pval_fish(1:nn+1:end) = 0;                %NaN screws up everything, so get rid of the diag, but becareful here. 
+% 
+% Stat.z.rzfish = rzfish;
+% Stat.p.f_PvalFish = f_pval_fish;
 %-------Stat-----------------------------
 Stat.W2S = W2S;
 end

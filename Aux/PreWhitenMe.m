@@ -1,6 +1,26 @@
-function [wY,W_tmp]=PreWhitenMe(Y,T,varargin)
-% [wY,W_tmp]=PreWhitenMe(Y,T,varargin)
-% 
+function [wY,W]=PreWhitenMe(Y,T,varargin)
+%   [wY,W_tmp]=PreWhitenMe(Y,T,varargin)
+%   Prewhiten the time series; whiten the autocorrelation.   
+%   
+%   Y: can be a vector of size T or a matrix of size KxT comprised of K 
+%   time series. Each time series is pre-whitened independently. 
+%   T: number of datapoints; for sake of sanity check!
+%   
+%%%OUTPUTS:
+%   wY : prewhitened time series 
+%   W  : prewhitening matrices, if you are prewhitening multiple time
+%   series it is gonna be a TxTxK 3D matrix (becareful with memory!)
+%   
+%%%EXAMPLE:
+%  Use a single tukey tapering (Woolrich et al 2001) & Cholesky decomposition:
+%  [wY,W_tmp]=PreWhitenMe(Y,T,'taper','tukey',sqrt(T),'DM','Cholesky');
+%   
+%  Use an AR2 model & SVD decomposition:
+%  [wY,W_tmp]=PreWhitenMe(Y,T,'taper','curb',2,'DM','svd');
+%
+%%%NOTES:
+%  Do not forget to specify your model via 'taper' option.
+%
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2018
 % srafyouni@gmail.com
@@ -23,6 +43,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     mY  = Y-mean(Y,2); 
     Yac = AC_fft(Y,T);
     nLg = T-2;
+    
 %-------READING
     if sum(strcmpi(varargin,'DM'))
        DM = lower(varargin{find(strcmpi(varargin,'DM'))+1});
@@ -53,6 +74,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
             for in=1:Nts    
                 Yac(in,:) = curbtaperme(Yac(in,:),T,M);
             end
+            plot(Yac(in,:))
     %--------------------------------------------------------------------------
         else
             error('choose one of these; shrink | tukey | curb as tapering option.')
@@ -76,7 +98,6 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
         W(:,:,i) = W_tmp; 
         clear *_tmp;
     end
-
 end
 
 %----OTHER FUNCTIONS
@@ -128,8 +149,8 @@ function where2stop = FindBreakPoint(acs,T)
 end
 %--------------------------------------------------------------------------
 function ct_ts=curbtaperme(acs,T,M)
-% Curb the autocorrelations, according to Anderson 1984
-% multi-dimensional, and therefore is fine!
+% Curb the autocorrelations, according to Anderson 1984.
+% Multi-dimensional, and therefore is fine!
 %SA, Ox, 2018
     if ~sum(ismember(size(acs),T)); error('There is something wrong, mate!'); end
     if size(acs,2) ~= T; acs = acs'; end
