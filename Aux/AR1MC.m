@@ -31,7 +31,7 @@ arone0 = median(arone0);
 netmat = corr(Y);
 clear Y
 % create null data using the estimated AR(1) coefficient-------------------
-for i=1:nn 
+for i=1:50 
   Y(1)=randn(1);
   for t=2:T %SA: creat random numbers with ar1 element for rest of the *run*
     Y(t)=Y(t-1)*arone0+randn(1);
@@ -39,7 +39,7 @@ for i=1:nn
   Yr(:,i)=Y;
 end
 
-IDX     = find(triu(ones(nn),1));
+IDX     = find(triu(ones(50),1));
 Yrc     = corr(Yr);
 
 V       = var(Yrc(IDX));
