@@ -64,7 +64,7 @@ end
 
 V            = BCF./T; %is it?
 
-Z            = atanh(corr(Y')).*sqrt(T./BCF-3);
+Z            = atanh(corr(Y')).*sqrt(T./BCF);
 Z(1:N+1:end) = 0;
 
 P            = 2 * normcdf(-abs(Z));

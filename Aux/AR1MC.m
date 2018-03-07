@@ -17,7 +17,7 @@ end
 
 nn = size(Y,2);
 
-Y  = Y - mean(Y); %demean, unless AR1 estimate is crap!
+Y  = Y - mean(Y); %demean
 %Estimate AR1--------------------------------------------------------------
 
 arone0=[];
@@ -43,8 +43,9 @@ IDX     = find(triu(ones(50),1));
 Yrc     = corr(Yr);
 
 V       = var(Yrc(IDX));
-R2Zcrt  = 1./std(atanh(Yrc(IDX))); %SA: what?! so what happened to sqrt(T-3)?!
-Z       = atanh(netmat).*R2Zcrt;
+%This is 1/N-3; where N-3 is estimated by the std of the corrs 
+R2Zcrt  = 1./std(atanh(Yrc(IDX)));
 
+Z       = atanh(netmat).*R2Zcrt;
 P       = 2 * normcdf(-abs(Z)); 
 
