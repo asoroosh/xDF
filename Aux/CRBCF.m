@@ -56,15 +56,14 @@ wgt    = (nLg:-1:2)./(T);
 
 BCF    = 1+2.*(wgt.*ac*ac');
 
-if any(any(BCF>T))
-    BCF (BCF>T) = T;
-end
+if any(any(BCF>T)); BCF (BCF>T) = T; end
+if any(any(BCF<1)); disp('BCF was below 1, set back to 1.'); BCF(BCF<1) = 1; end
 
 %atanh(corr(Y)).*sqrt(T./BCF-3)
 
 V            = BCF./T; %is it?
 
-Z            = atanh(corr(Y')).*sqrt(T./BCF);
+Z            = atanh(corr(Y')).*sqrt(T./BCF-3);
 Z(1:N+1:end) = 0;
 
 P            = 2 * normcdf(-abs(Z));
