@@ -27,6 +27,11 @@ function [ASAt,Stat]=PearCorrVarEst(ts,T,varargin)
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
+    
+%-----------------------------------------------------------
+error('DO NOT USE ME, USE xDF.m')
+%-----------------------------------------------------------
+
     if  size(ts,2) ~= T
         ts = ts';
         warning('Oi!')
