@@ -18,7 +18,7 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %   xC_fft.m : estimates cross corr functions super quick via FFT
 %
 %%%REFERENCES:
-%   Variance of Pearson's correlations of serially-correlated time series
+%   Variance of Pearson's correlations under serial-correlations
 %   Soroosh Afyouni & Thomas E. Nichols
 %   2018
 %   University of Oxford
@@ -176,7 +176,7 @@ if sum(sum(ASAt < TV)) && TVflag
     % Considering that the variance can *only* get larger in presence of autocorrelation.  
     idx_ex       = find(ASAt < TV);
     ASAt(idx_ex) = TV(idx_ex);
-    warning([num2str(numel(idx_ex)-nn) ' edges had variance smaller than the textbook variance!'])
+    disp([num2str(numel(idx_ex)-nn) ' edges had variance smaller than the textbook variance!'])
     [x_tmp,y_tmp]=ind2sub([nn nn],idx_ex);
     Stat.EVE = [x_tmp,y_tmp];
 end  
