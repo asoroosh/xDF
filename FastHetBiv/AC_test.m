@@ -25,7 +25,7 @@ if sum(strcmpi(varargin,'FDR')) || nargin==1
     disp('FDR performed.')
     %FDR
     for i=1:I 
-        p_adj(i,:) = fdr_bh(acpvals(i,:)); 
+        p_adj(i,:) = fdr_bh(acpvals(i,:)); %fdr_bh is an external func: https://uk.mathworks.com/matlabcentral/fileexchange/27418-fdr-bh
     end
 elseif sum(strcmpi(varargin,'Bon'))
     disp('Bon performed.')

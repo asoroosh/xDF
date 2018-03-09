@@ -9,7 +9,7 @@ function Wy = WhiteningCorr(Y,L,varargin)
 %   NB! Becareful about number of time series, the estm gets crappier as 
 %   the number of time series grows.  
 %
-% Soroosh Afyouni, Ox, 2017
+% Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
 %
 if size(Y,2)~=L

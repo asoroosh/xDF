@@ -1,9 +1,11 @@
 function [xC,lidx]=xC_fft(Y,T,varargin)
-%[xAC]=xC_fft(Y,L,varargin)
+%[xAC]=xC_fft(Y,T,varargin)
 %   Super fast full-lag cross-correlation calculation of multi-dimensional 
 %   matrices.
 %
 %%%%%  INPUTS:
+%   Y:      A matrix of size IxT comprised of I time series of T length.
+%   L:      Time series length
 %
 %%%%%  OUTPUTS:
 %   xC   :  Is a 3D matrix of IxIxT: 
@@ -27,7 +29,7 @@ function [xC,lidx]=xC_fft(Y,T,varargin)
 %   For only a pair time series, this is slower than crosscorr. Only use 
 %   this function if you have a lager number of time series 
 %_________________________________________________________________________
-% Soroosh Afyouni, NISOx.org, 2017
+% Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
