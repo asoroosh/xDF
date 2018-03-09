@@ -22,7 +22,6 @@ d   = diag(Kx*Ky');
 as  = min(d);
 rho = rho.*as;
 
-
 Sigma_xy = rho.*((Kx*Ky')./as);
 
 %figure; imagesc(Sigma_xy)
@@ -37,24 +36,32 @@ Sigma_xy = rho.*((Kx*Ky')./as);
 % imagesc(Sigma_y)
 % subplot(3,1,3); hold on; axis tight; 
 % imagesc(Sigma_xy)
+
 %Monster Eq -----------------------------------------------
-SigX2    =  trace(Sigma_x ^2);
-SigY2    =  trace(Sigma_y ^2);
-SigXSigY =  trace(Sigma_x * Sigma_y);
+% SigX2    =  trace(Sigma_x ^2);
+% SigY2    =  trace(Sigma_y ^2);
+% SigXSigY =  trace(Sigma_x * Sigma_y);
+% SigXY2    = trace(Sigma_xy^2);
+% SigXSigXY = trace(Sigma_x * Sigma_xy);
+% SigYSigXY = trace(Sigma_y * Sigma_xy);
+% ASAt=((rho.^2./2).* SigX2... 
+%     + (rho.^2./2) .* SigY2...
+%     + rho.^2      .* SigXY2...
+%     - 2.*rho      .* SigXSigXY...
+%     - 2.*rho      .* SigYSigXY... 
+%     + SigXSigY...
+%     + SigXY2)/T.^2;
 
-SigXY2    = trace(Sigma_xy^2);
-
-SigXSigXY = trace(Sigma_x * Sigma_xy);
-SigYSigXY = trace(Sigma_y * Sigma_xy);
-
-ASAt=((rho.^2./2).* SigX2... 
-    + (rho.^2./2) .* SigY2...
-    + rho.^2      .* SigXY2...
-    - 2.*rho      .* SigXSigXY...
-    - 2.*rho      .* SigYSigXY... 
-    + SigXSigY...
-    + SigXY2)/T.^2;
 %----------------------------------------------------------
+%xDF
+ASAt = ((rho.^2./2) .* (trace(Sigma_x^2) + trace(Sigma_y^2))...                     % 1 & 2
+        + trace(Sigma_x*Sigma_y) + rho^2 .* trace(Sigma_xy*Sigma_xy')...            % 3&4
+        - rho .* trace(Sigma_x*Sigma_xy) - rho .* trace(Sigma_x*Sigma_xy')...       % 5&6
+        - rho .* trace(Sigma_y*Sigma_xy) - rho .* trace(Sigma_y*Sigma_xy')...       % 7&8
+        + trace(Sigma_xy^2))./T^2; %9
+
+%----------------------------------------------------------
+SigXSigY =  trace(Sigma_x * Sigma_y);
 CnR = SigXSigY/T^2;
 %(1-rho.^2).^2/T
 

@@ -11,8 +11,16 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %   noise then it curbs the estimate back to (1-rho^2)^2/T. If you want it
 %   off, trigger 'TVOff'
 %%%OUTPUTS:
-%   ASAt : a 2D matrix of size IxI with diagonal set to zero
-%   Stat : Contains every other non very important stuff!
+%   ASAt : Variance of rho_ts a 2D matrix of size IxI with diagonal set to zero
+%   Stat : is a structure, comprised of:
+%        Stat.p.f_Pval: IxI p-values (un-adjusted)
+%        Stat.z.rzf: IxI z-scores (Fisher transformed & adjusted for AC)
+%
+%        You probably won't care about the below info:
+%        Stat.W2S: IxI of where shrinking has curbed the ACF
+%        Stat.TV: Theoritical variance under x & y are i.i.d; (1-rho^2)^2 
+%        Stat.EVE: Index of (i,j) edges of which their variance exceeded
+%        the theoritical var. 
 %%%DEPENDECIES:
 %   AC_fft.m : estimates ACF super quick via FFT
 %   xC_fft.m : estimates cross corr functions super quick via FFT
@@ -22,63 +30,46 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %   Soroosh Afyouni & Thomas E. Nichols
 %   2018
 %   University of Oxford
-
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2018
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
 
-%T = 100;
-%ts=corrautocorr_sqrtm([0 0],0.9,cat(3,MakeMeCovMat([0.9:-.1:.1],T),MakeMeCovMat(0,T)),T);
-% load('/Users/sorooshafyouni/Home/BCF/BCFAnal/Sims/HetBivStressTest/FC135932/HCP_FPP_135932_Yeo_ROIs.mat','mts');
-% ts = mts; 
-% T = 1200; 
-% varargin=[];
-
-    if  size(ts,2) ~= T
+    if  size(ts,2) ~= T %makes sure dimensions are sound
         ts = ts';
         warning('Oi!')
     end
     
-    W2S = []; Stat.EVE=[]; TVflag = 1;
+    W2S = []; Stat.EVE=[]; TVflag = 1; verbose = 0;
     
     nn  = size(ts,1);
-    %ts  = dtrend(ts);
     ts  = ts./std(ts,[],2); %standardise
     %Corr----------------------------------------------------------------------
     rho   = corr(ts');
     rho(1:nn+1:end) = 0;
     %Autocorr------------------------------------------------------------------
-    [ac] = AC_fft(ts,T); %demean the time series
-    ac   = ac(:,2:T-1);
-    
-    nLg  = T-2;       %if lag0 was the 0th element. Also, the ACF has T-1 dof. eh?  
+    [ac] = AC_fft(ts,T); 
+    ac   = ac(:,2:T-1); %The last element of ACF is rubbish, the first one is 1, so why bother?!
+    nLg  = T-2;         
     %Cross-corr---------------------------------------------------------------- 
     xcf = xC_fft(ts,T);
-    xc_n      = flip(xcf(:,:,2:T-1),3);
-    xc_p      = xcf(:,:,T+1:end-1);
+    xc_n      = flip(xcf(:,:,2:T-1),3); %positive-lag xcorrs
+    xc_p      = xcf(:,:,T+1:end-1); %negative-lag xcorrs
     
-    %figure; plot(ac')
-    %figure; plot(squeeze(acx_n(1,2,:))); hold on; plot(squeeze(acx_p(1,2,:)));  
     %----MEMORY SAVE----
     clear ts 
     %-------------------
-        
     
-    if sum(strcmpi(varargin,'TVOff'))
-        %disp('Anything beyond theoritical variance is forced down to theoritical variance (1-rho^2)^2.')
-        TVflag = 0;
-    end    
+    if sum(strcmpi(varargin,'TVOff'));   TVflag = 0; end    
+    if sum(strcmpi(varargin,'verbose')); verbose = 1; end 
     
     if sum(strcmpi(varargin,'taper'))
         mth = varargin{find(strcmpi(varargin,'taper'))+1};
         if strcmpi(mth,'tukey')
     %Tukey Tappering----------------------------------------
-            M = round(varargin{find(strcmpi(varargin,'tukey'))+1});
+            M = round(varargin{find(strcmpi(varargin,'tukey'))+1}); %reads the tukey tapering upper lim (i.e. M; Woolrich et al 2001)
             if isempty(M); error('you MUST set a tukey factor.'); end;
-
-            %disp([mth 'ed with ' num2str(M) ' length was used.'])
             for in=1:nn    
                 ac(in,:) = tukeytaperme(ac(in,:),nLg,M);
                 for jn=1:nn 
@@ -89,53 +80,26 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
             
     %Shrinking------------------------------------------------
         elseif strcmpi(mth,'shrink')
-            M = round(varargin{find(strcmpi(varargin,'shrink'))+1});
-            
-            %disp('TAPER SHRINK')
-            
-            if M>1
-                error('Not yet, mate!')
-%                 for in=1:nn    
-%                     ac(in,:)  = ShrinkPeriod(ac(in,:),M);
-%                     for jn=1:nn 
-%                         acx_n(in,jn,:) = ShrinkPeriod(acx_n(in,jn,:),M);
-%                         acx_p(in,jn,:) = ShrinkPeriod(acx_p(in,jn,:),M);
-%                     end
-%                 end
-            elseif M==1
-                
-                
-                for in=1:nn
-                    for jn=1:nn
-                        W2S(in,jn) = max([FindBreakPoint(ac(in,:),nLg) FindBreakPoint(ac(jn,:),nLg)]);
-                    end
+             for in=1:nn
+                for jn=1:nn
+                    W2S(in,jn) = max([FindBreakPoint(ac(in,:),nLg) FindBreakPoint(ac(jn,:),nLg)]);
                 end
-                
-                for in=1:nn    
-                    ac(in,:)= shrinkme(ac(in,:),nLg);
-%                     for jn=1:nn 
-%                         acx_n(in,jn,:) = shrinkme(squeeze(acx_n(in,jn,:)),nLg);
-%                         acx_p(in,jn,:) = shrinkme(squeeze(acx_p(in,jn,:)),nLg);
-%                     end
-                    for jn=1:nn 
-                        xc_n(in,jn,:) = curbtaperme(squeeze(xc_n(in,jn,:)),nLg,W2S(in,jn));
-                        xc_p(in,jn,:) = curbtaperme(squeeze(xc_p(in,jn,:)),nLg,W2S(in,jn));
-                    end
-
-                end  
-            else
-                error('What are you up to mate?!')
             end
-            %figure; plot(squeeze(acx_n(1,2,:))); hold on; plot(squeeze(acx_p(1,2,:)));             
-            %figure; plot(ac(1,:)); hold on; plot(ac(2,:));
+
+            for in=1:nn    
+                ac(in,:)= shrinkme(ac(in,:),nLg);
+                for jn=1:nn 
+                    xc_n(in,jn,:) = curbtaperme(squeeze(xc_n(in,jn,:)),nLg,W2S(in,jn));
+                    xc_p(in,jn,:) = curbtaperme(squeeze(xc_p(in,jn,:)),nLg,W2S(in,jn));
+                end
+
+            end  
     %Curbing------------------------------------------------
         elseif strcmpi(mth,'curb')
-            M = round(varargin{find(strcmpi(varargin,'curb'))+1});
-
+            M = round(varargin{find(strcmpi(varargin,'curb'))+1}); %the curbing factor
             for in=1:nn    
                 ac(in,:) = curbtaperme(ac(in,:),nLg,M);
                 for jn=1:nn 
-                    %size(squeeze(acx_n(in,jn,:))), nLg
                     xc_n(in,jn,:) = curbtaperme(squeeze(xc_n(in,jn,:))',nLg,M);
                     xc_p(in,jn,:) = curbtaperme(squeeze(xc_p(in,jn,:))',nLg,M);
                 end
@@ -154,16 +118,16 @@ wgtm3   = reshape(repmat((repmat(wgt,[nn,1])),[nn,1]),[nn,nn,numel(wgt)]); %this
 Tp      = T-1;
 
  ASAt = (Tp*(1-rho.^2).^2 ...
-     +   rho.^2 .* sum(wgtm3 .* (SumMat(ac.^2,nLg)  +  xc_p.^2+xc_n.^2),3)...     %1 2 4
-     -   2.*rho .* sum(wgtm3 .* (SumMat(ac,nLg)    .* (xc_p+xc_n)),3)...         % 5 6 7 8
-     +   2      .* sum(wgtm3 .* (ProdMat(ac,nLg)    + (xc_p.*xc_n)),3))./(T^2);  % 3 9 
+     +   rho.^2 .* sum(wgtm3 .* (SumMat(ac.^2,nLg)  +  xc_p.^2 + xc_n.^2),3)...         %1 2 4
+     -   2.*rho .* sum(wgtm3 .* (SumMat(ac,nLg)    .* (xc_p    + xc_n))  ,3)...         % 5 6 7 8
+     +   2      .* sum(wgtm3 .* (ProdMat(ac,nLg)    + (xc_p   .* xc_n))  ,3))./(T^2);   % 3 9 
  
 %this part if from PearCorrVarEst.m; when you assume the xCORR are symm! 
 % wgtm2   = repmat(wgt,[nn,1]);
 % ASAt = [Tp                  .* (1-rho.^2).^2 ...
 %        + rho.^2             .* sum(SumMat((wgtm2.*ac.^2),nLg),3) ...                % 1    -- AC 
 %        + 2 .* wgt           .* ac*ac'...                                            % 5    -- AC
-%        + 2 .* (rho.^2 + 1)  .* sum((wgtm3.*xc_n.*xc_p),3) ...                     %2 & 3 -- XC
+%        + 2 .* (rho.^2 + 1)  .* sum((wgtm3.*xc_n.*xc_p),3) ...                       %2 & 3 -- XC
 %        - 2 .* rho           .* sum(wgtm3.*SumMat(ac,nLg).*(xc_n+xc_p),3)]./(T.^2);  %4 -- This this the only term which we can't seperate the AC and XC! 
 %----MEMORY SAVE----
 clear wgtm3 xc_* ac 
@@ -171,12 +135,11 @@ clear wgtm3 xc_* ac
 
 %Keep your wit about you!
 TV = (1-rho.^2).^2./T;
-%TV
 if sum(sum(ASAt < TV)) && TVflag
     % Considering that the variance can *only* get larger in presence of autocorrelation.  
     idx_ex       = find(ASAt < TV);
     ASAt(idx_ex) = TV(idx_ex);
-    disp([num2str(numel(idx_ex)-nn) ' edges had variance smaller than the textbook variance!'])
+    if verbose; disp([num2str(numel(idx_ex)-nn) ' edges had variance smaller than the textbook variance!']); end;
     [x_tmp,y_tmp]=ind2sub([nn nn],idx_ex);
     Stat.EVE = [x_tmp,y_tmp];
 end  
@@ -193,7 +156,7 @@ ASAt(1:nn+1:end) = 0;
 
 %Our turf--------------------------------
 rf      = atanh(rho);
-sf      = ASAt./((1-rho.^2).^2);    %delta method; make sure the N is correct! So they cancelled out?!
+sf      = ASAt./((1-rho.^2).^2);    %delta method; make sure the N is correct! So they cancel out.
 rzf     = rf./sqrt(sf);
 rzf(1:nn+1:end) = 0;
 f_pval  = 2 .* normcdf(-abs(rzf));  %both tails
@@ -229,14 +192,12 @@ function [SM0] = SumMat(Y0,T)
 
     nn  = size(Y0,2);
     idx = find(triu(ones(nn),1))';
-    %SM  = zeros(nn);
     SM0 = zeros(nn,nn,T);
     for i=idx
         [x,y]      = ind2sub(nn,i);
         SM0(x,y,:) = (Y0(:,x)+Y0(:,y));
         SM0(y,x,:) = (Y0(:,y)+Y0(:,x));
     end
-    %SM = sum(SM0,3);
 end
 
 function [SM0] = ProdMat(Y0,T)
@@ -249,14 +210,12 @@ function [SM0] = ProdMat(Y0,T)
 
     nn  = size(Y0,2);
     idx = find(triu(ones(nn),1))';
-    %SM  = zeros(nn);
     SM0 = zeros(nn,nn,T);
     for i=idx
         [x,y]      = ind2sub(nn,i);
         SM0(x,y,:) = (Y0(:,x).*Y0(:,y));
         SM0(y,x,:) = (Y0(:,y).*Y0(:,x));
     end
-    %SM = sum(SM0,3);
 end
 
 %--------------------------------------------------------------------------
@@ -282,8 +241,6 @@ function srnkd_ts=shrinkme(acs,T)
     if ~where2stop %if there was nothing above the CI...
         srnkd_ts = zeros(1,T);
     else
-        % where2stop = where2stop(1)-1; %-1 because we want to stop before intercept
-        % srnkd_ts   = tukeytaperme(ts,where2stop);
         srnkd_ts   = curbtaperme(acs,T,where2stop);
     end
 end
@@ -338,67 +295,129 @@ function tt_ts=tukeytaperme(acs,T,M)
     %figure; plot(tt_ts); hold on; plot(acs); 
 end
 
-% function sY=ShrinkPeriod(Y,WhichPeak)
-% %WhichPeak indetified up until how many bumps we should continue (above-CI
-% %bumps, of course).
-% %NB! This function uses pieces from an external package.
+function [xAC,CI,ACOV]=AC_fft(Y,L,varargin)
+%[xAC]=AC_fft(Y,T,varargin)
+% Super fast full-lag AC calculation of multi-dimention matrices. The
+% function exploits fft to estimate the autocorrelations. 
 %
-% %SA, Ox, 2018
+%%%%INPUTS
+%   Y:      A matrix of size IxT comprised of I time series of T length.
+%   L:      Time series length
+%   
+%   To get a double sided AC, add 'two-sided' as an input.
 %
-%     T = numel(Y);
-%     bnd=(sqrt(2)*erfinv(0.95))./sqrt(T);
-%     
-%     P  = round(InterX([1:T;Y],[1:T;zeros(1,T)]));
-%     P  = P(1,:); 
-%     P0 = [1 P(1,:)];
-%     
-%     if WhichPeak>numel(P)
-%         warning('There are less peaks than you asked for.')
-%         WhichPeak=numel(P);
-%     end
-%     
-%     Idx=zeros(1,WhichPeak);
-%     for p=1:WhichPeak; pY = Y(P0(p):P(p)); if any(abs(pY)>bnd); Idx(p)=1; end; end;
-%     
-%     for i=Idx
-%         if ~i; break; end; 
-%         Idx(i)=1; 
-%     end
-%     
-%     sY0 = Y(1:max(P(find(Idx))));
-%     sY  = zeros(1,T);
-%     sY(1:numel(sY0)) = sY0;
-% end
-% function P = InterX(L1,L2)
-%        
-%     %...Preliminary stuff
-%     x1  = L1(1,:)';  x2 = L2(1,:);
-%     y1  = L1(2,:)';  y2 = L2(2,:);
-%     dx1 = diff(x1); dy1 = diff(y1);
-%     dx2 = diff(x2); dy2 = diff(y2);
-%     
-%     %...Determine 'signed distances'   
-%     S1 = dx1.*y1(1:end-1) - dy1.*x1(1:end-1);
-%     S2 = dx2.*y2(1:end-1) - dy2.*x2(1:end-1);
-%     
-%     C1 = feval(@le,D(bsxfun(@times,dx1,y2)-bsxfun(@times,dy1,x2),S1),0);
-%     C2 = feval(@le,D((bsxfun(@times,y1,dx2)-bsxfun(@times,x1,dy2))',S2'),0)';
-% 
-%     %...Obtain the segments where an intersection is expected
-%     [i,j] = find(C1 & C2); 
-%     if isempty(i),P = zeros(2,0);return; end;
-%     
-%     %...Transpose and prepare for output
-%     i=i'; dx2=dx2'; dy2=dy2'; S2 = S2';
-%     L = dy2(j).*dx1(i) - dy1(i).*dx2(j);
-%     i = i(L~=0); j=j(L~=0); L=L(L~=0);  %...Avoid divisions by 0
-%     
-%     %...Solve system of eqs to get the common points
-%     P = unique([dx2(j).*S1(i) - dx1(i).*S2(j), ...
-%                 dy2(j).*S1(i) - dy1(i).*S2(j)]./[L L],'rows')';
-%               
-%     function u = D(x,y)
-%         u = bsxfun(@minus,x(:,1:end-1),y).*bsxfun(@minus,x(:,2:end),y);
-%     end
-% end
+%   NB! The function includes the 0lag zero (i.e. 1) to the output. 
+%%%%OUTPUTS
+%   xAC:    IxT-1 matrix of full-lag autocorrelations. If 'two-sided'
+%           switched, then the matrix is Ix2(T-1).
+%   CI :    95% Confidence Intervals of AFC.
+%_________________________________________________________________________
+% Soroosh Afyouni, University of Oxford, 2017
+% srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
+
+if size(Y,2)~=L
+    Y=Y';
+end
+
+if size(Y,2)~=L
+    error('Use IxT or TxI input form.')
+end
+
+Y=Y-mean(Y,2); 
+%only works on >2016 Matlabs, but faster!
+% if <2016, use Y=Y-repmat(mean(Y,2),1,L) instead.
+
+nfft    = 2.^nextpow2(2*L-1); %zero-pad the hell out!
+yfft    = fft(Y,nfft,2); %be careful with the dimensions
+
+ACOV = real(ifft(yfft.*conj(yfft),[],2));
+
+ACOV = ACOV(:,1:L);
+
+xAC  = ACOV./sum(abs(Y).^2,2); %normalise the COVs
+
+if sum(strcmpi(varargin,'two-sided')) %two sided is just mirrored, AC func is symmetric
+   xAC  = [xAC(:,end-L+2:end) ; xAC(:,1:L)];
+else
+    xAC  = xAC(:,1:L);
+end
+
+bnd=(sqrt(2)*erfinv(0.95))./sqrt(L); %assumes normality for AC
+CI=[-bnd bnd];
+
+end
+
+function [xC,lidx]=xC_fft(Y,T,varargin)
+%[xAC]=xC_fft(Y,T,varargin)
+%   Super fast full-lag cross-correlation calculation of multi-dimensional 
+%   matrices.
+%
+%%%%%  INPUTS:
+%   Y:      A matrix of size IxT comprised of I time series of T length.
+%   L:      Time series length
+%
+%%%%%  OUTPUTS:
+%   xC   :  Is a 3D matrix of IxIxT: 
+%
+%           1) On the diagolans, you get the *auto*correlation. Although note
+%              that the result is a symmetric ACF (negatives and positives)
+%              autocorrelation lags.
+%
+%           2) Off diagonals are *cross*correlations between a pair
+%           3) The identity IxIx1 is a correlation matrix (i.e. lag-0 structures).
+%
+%   lidx :  I a vector of lag indexes. Each 1x1xT structure follows these
+%           lag indexes.
+%%%%%% NOTES:
+%   If you need the Pearson's correlation (lag0 xcorr), set lag to 0! Also,
+%   diagonal of layer n is the AC of lag n! 
+%
+%   This function only works for Matlab 2016< and there is no way around
+%   it!
+%
+%   For only a pair time series, this is slower than crosscorr. Only use 
+%   this function if you have a lager number of time series 
+%_________________________________________________________________________
+% Soroosh Afyouni, University of Oxford, 2017
+% srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
+
+if size(Y,2)~=T
+    Y=Y'; %IxT
+end
+I = size(Y,1);
+
+if sum(strcmpi(varargin,'lag'))
+    mxL = varargin{find(strcmpi(varargin,'lag'))+1};
+    if ~mxL; mxL=1; end; %the user wants the Pearson's Correlation!
+else
+    mxL = T;
+end
+
+Y = Y-mean(Y,2);
+%only works on >2016 Matlabs, but faster!
+% if <2016, use Y=Y-repmat(mean(Y,2),1,L) instead.
+
+nfft  = 2^nextpow2(2*T-1); %zero-pad me
+yfft  = fft(Y,nfft,2);
+
+mxLcc = (mxL-1)*2+1;
+xC    = zeros(I,I,mxLcc);
+
+[xx,yy]=find(triu(ones(I),1));
+for i=1:numel(xx)
+    xC0         = ifft(yfft(xx(i),:).*conj(yfft(yy(i),:)));
+    xC0         = fliplr([xC0(end-mxL+2:end),xC0(1:mxL)]);
+    xC(xx(i),yy(i),:)   = xC0./sqrt(sum(abs(Y(xx(i),:)).^2)*sum(abs(Y(yy(i),:)).^2));
+    clear xC0
+end
+
+xC = xC + permute(xC,[2 1 3]);
+
+lidx = [-(mxL-1) : (mxL-1)];
+
+end
 
