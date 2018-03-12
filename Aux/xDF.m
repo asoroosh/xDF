@@ -1,5 +1,9 @@
 function [ASAt,Stat]=xDF(ts,T,varargin)
-% Estimates the Monster Equation!
+% Estimates variance of Pearson's correlations for non-white time series;
+%   - Exploites matrix operations & fft for quick estimation of multiple
+%   time series. 
+%   - Returns variance, adjusted z-scores and uncorrected p-values
+%
 %
 %%%INPUTS:
 %   ts: Time series as a 2D matrix. 
@@ -24,6 +28,13 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %%%DEPENDECIES:
 %   AC_fft.m : estimates ACF super quick via FFT
 %   xC_fft.m : estimates cross corr functions super quick via FFT
+%
+%%%EXAMPLES:
+%   Estimating the variance without any tapering method
+%   [V,Stat]=xDF(ts,T,varargin)
+%
+%   Estimating the variance without any tapering method
+%   [V,Stat]=xDF(ts,T,varargin)
 %
 %%%REFERENCES:
 %   Variance of Pearson's correlations under serial-correlations
@@ -56,12 +67,15 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     xcf = xC_fft(ts,T);
     xc_n      = flip(xcf(:,:,2:T-1),3); %positive-lag xcorrs
     xc_p      = xcf(:,:,T+1:end-1); %negative-lag xcorrs
-    
     %----MEMORY SAVE----
     clear ts 
     %-------------------
-    
-    if sum(strcmpi(varargin,'TVOff'));   TVflag = 0; end    
+    if sum(strcmpi(varargin,'TVOff'))
+        disp('Variance Curbing is OFF');
+        TVflag = 0; 
+    else
+        disp('Variance Curbing is ON');
+    end    
     if sum(strcmpi(varargin,'verbose')); verbose = 1; end 
     
     if sum(strcmpi(varargin,'taper'))
@@ -80,12 +94,11 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
             
     %Shrinking------------------------------------------------
         elseif strcmpi(mth,'shrink')
-             for in=1:nn
+            for in=1:nn
                 for jn=1:nn
                     W2S(in,jn) = max([FindBreakPoint(ac(in,:),nLg) FindBreakPoint(ac(jn,:),nLg)]);
                 end
             end
-
             for in=1:nn    
                 ac(in,:)= shrinkme(ac(in,:),nLg);
                 for jn=1:nn 
@@ -109,9 +122,6 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
             error('choose one of these; shrink | tukey | curb as tapering option.')
         end
     end
-   
-    
-    
 %Crazy, eh?
 wgt     = (nLg:-1:1);
 wgtm3   = reshape(repmat((repmat(wgt,[nn,1])),[nn,1]),[nn,nn,numel(wgt)]); %this is shit, eats all the memory!
@@ -294,7 +304,7 @@ function tt_ts=tukeytaperme(acs,T,M)
     tt_ts(1:M) = (1+cos([1:M].*pi./M))./2.*acs(1:M);
     %figure; plot(tt_ts); hold on; plot(acs); 
 end
-
+%--------------------------------------------------------------------------
 function [xAC,CI,ACOV]=AC_fft(Y,L,varargin)
 %[xAC]=AC_fft(Y,T,varargin)
 % Super fast full-lag AC calculation of multi-dimention matrices. The
@@ -348,7 +358,7 @@ bnd=(sqrt(2)*erfinv(0.95))./sqrt(L); %assumes normality for AC
 CI=[-bnd bnd];
 
 end
-
+%--------------------------------------------------------------------------
 function [xC,lidx]=xC_fft(Y,T,varargin)
 %[xAC]=xC_fft(Y,T,varargin)
 %   Super fast full-lag cross-correlation calculation of multi-dimensional 
@@ -401,7 +411,7 @@ Y = Y-mean(Y,2);
 %only works on >2016 Matlabs, but faster!
 % if <2016, use Y=Y-repmat(mean(Y,2),1,L) instead.
 
-nfft  = 2^nextpow2(2*T-1); %zero-pad me
+nfft  = 2^nextpow2(2*T-1); %zero-pad a hell out
 yfft  = fft(Y,nfft,2);
 
 mxLcc = (mxL-1)*2+1;
