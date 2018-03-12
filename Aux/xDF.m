@@ -11,9 +11,14 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %
 %   Optionals:
 %   'taper' : uses a tapering method to denoise AC functions
+%             Tapering options are:
+%             'taper','tukey' : Single Tukey tapering with cut-off M (as in Woolrich et al 2001)
+%             'taper','shrink': Uses CI of autocorrelation functions 
+%             'taper','curb'  : Cut-off the autocorrelation function on an arbitrary threshold M 
 %   'TVOff' : if an estimate exceeed the theoritical variance of a white
 %   noise then it curbs the estimate back to (1-rho^2)^2/T. If you want it
 %   off, trigger 'TVOff'
+%
 %%%OUTPUTS:
 %   ASAt : Variance of rho_ts a 2D matrix of size IxI with diagonal set to zero
 %   Stat : is a structure, comprised of:
@@ -25,16 +30,24 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %        Stat.TV: Theoritical variance under x & y are i.i.d; (1-rho^2)^2 
 %        Stat.EVE: Index of (i,j) edges of which their variance exceeded
 %        the theoritical var. 
+%
 %%%DEPENDECIES:
 %   AC_fft.m : estimates ACF super quick via FFT
 %   xC_fft.m : estimates cross corr functions super quick via FFT
 %
 %%%EXAMPLES:
-%   Estimating the variance without any tapering method
-%   [V,Stat]=xDF(ts,T,varargin)
+%   Estimating the variance *without* any tapering method
+%   [V,Stat]=xDF(ts,T)
 %
-%   Estimating the variance without any tapering method
-%   [V,Stat]=xDF(ts,T,varargin)
+%   Estimating the variance with Tukey tapering method
+%   [V,Stat]=xDF(ts,T,'taper','tukey',sqrt(T))
+%   
+%   Estimating the variance with shrinking tapering method
+%   [V,Stat]=xDF(ts,T,'taper','shrink')
+%
+%   Estimating the variance with shrinking tapering method & without
+%   contolling the variance. 
+%   [V,Stat]=xDF(ts,T,'taper','shrink','TVOff')
 %
 %%%REFERENCES:
 %   Variance of Pearson's correlations under serial-correlations
