@@ -52,6 +52,10 @@ ac(:,[1 end]) = []; %remove the 0lag, we'll take care of it later.
 ac = curbtaperme(ac,T-2,round((T-2)./CF)); %curb according to Pyper and Peterman
 
 BCF       = 1+2.*(ac*ac');
+
+if any(any(BCF>T)); BCF (BCF>T) = T; end
+if any(any(BCF<1)); disp('BCF was below 1, set back to 1.'); BCF(BCF<1) = 1; end
+
 V         = BCF./T; %is it?
 Z         = atanh(corr(Y)).*sqrt(T./BCF-3);
 P         = 2 * normcdf(-abs(Z));  
