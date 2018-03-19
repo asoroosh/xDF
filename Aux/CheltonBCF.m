@@ -1,4 +1,4 @@
-function [V,Z,P,BCF] = CheltonBCF(Y,T)
+function [V,Z,P,BCF] = CheltonBCF(Y,T,CF)
 % Estimating and correcting the degrees of freedom based on approximations
 % presented in Barteltt's 1946 and Quenouille's 1947.
 %
@@ -9,6 +9,7 @@ function [V,Z,P,BCF] = CheltonBCF(Y,T)
 %%%INPUTS
 %   Y : Time series.
 %   T : #data points, just for sanity check
+%   CF: Curbing Factor
 %
 %%%OUTPUTS
 %   V : Variance
@@ -39,7 +40,10 @@ function [V,Z,P,BCF] = CheltonBCF(Y,T)
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
 
-CF = 1;
+if ~exist('CF','var')
+    disp('CF hasnt been assigned, so set to 1.')
+    CF = 1; 
+end
 
 if size(Y,1)~=T
     Y=Y'; %IxT

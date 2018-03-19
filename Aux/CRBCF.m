@@ -1,10 +1,11 @@
-function [V,Z,P,BCF] = CRBCF(Y,T)
+function [V,Z,P,BCF] = CRBCF(Y,T,CF)
 % The way that Pyper says is right!
 % it is fast function i.e. more than 2 time series are accptable for input 
 %
 %%%INPUTS
 %   Y : Time series.
 %   T : #data points, just for sanity check
+%   CF: Curbing Factor
 %
 %%%OUTPUTS
 %   V : Variance
@@ -38,7 +39,10 @@ function [V,Z,P,BCF] = CRBCF(Y,T)
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
 
-CF = 1; 
+if ~exist('CF','var')
+    disp('CF hasnt been assigned, so set to 1.')
+    CF = 1; 
+end
 
 if size(Y,2)~=T
     Y=Y'; %TxI
@@ -57,7 +61,7 @@ wgt    = (nLg:-1:2)./(T);
 BCF    = 1+2.*(wgt.*ac*ac');
 
 if any(any(BCF>T)); BCF (BCF>T) = T; end
-if any(any(BCF<1)); disp('BCF was below 1, set back to 1.'); BCF(BCF<1) = 1; end
+if any(any(BCF<1)); disp([num2str(numel(find(BCF<1))) ' BCF was below 1, set back to 1.']); BCF(BCF<1) = 1; end
 
 %atanh(corr(Y)).*sqrt(T./BCF-3)
 
