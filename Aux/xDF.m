@@ -12,12 +12,14 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %   Optionals:
 %   'taper' : uses a tapering method to denoise AC functions
 %             Tapering options are:
-%             'taper','tukey' : Single Tukey tapering with cut-off M (as in Woolrich et al 2001)
+%             'taper','tukey',M : Single Tukey tapering with cut-off M (as in Woolrich et al 2001)
 %             'taper','shrink': Uses CI of autocorrelation functions 
-%             'taper','curb'  : Cut-off the autocorrelation function on an arbitrary threshold M 
+%             'taper','curb',M  : Cut-off the autocorrelation function on an arbitrary threshold M 
 %   'TVOff' : if an estimate exceeed the theoritical variance of a white
 %   noise then it curbs the estimate back to (1-rho^2)^2/T. If you want it
-%   off, trigger 'TVOff'
+%   off, trigger 'TVOff' [default : 'TVOn']
+%
+%   'verbose': reports some warnings and logs [default: Off]
 %
 %%%OUTPUTS:
 %   ASAt : Variance of rho_ts a 2D matrix of size IxI with diagonal set to zero
@@ -42,8 +44,9 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %   Estimating the variance with Tukey tapering method
 %   [V,Stat]=xDF(ts,T,'taper','tukey',sqrt(T))
 %   
-%   Estimating the variance with shrinking tapering method
-%   [V,Stat]=xDF(ts,T,'taper','shrink')
+%   Estimating the variance with shrinking tapering method and report where
+%   the variance is smaller than the textbook variance. 
+%   [V,Stat]=xDF(ts,T,'taper','shrink','verbose')
 %
 %   Estimating the variance with shrinking tapering method & without
 %   contolling the variance. 
@@ -224,7 +227,7 @@ function [SM0] = SumMat(Y0,T)
 end
 
 function [SM0] = ProdMat(Y0,T)
-    %hopefully faster than Matlab's dumb sum of sum!
+    %hopefully faster than Matlab's dumb prod of prod!
     %SA, Ox, 2018
 
     %becareful with this function, this is really tricky to use!
@@ -334,6 +337,8 @@ function [xAC,CI,ACOV]=AC_fft(Y,L,varargin)
 %   xAC:    IxT-1 matrix of full-lag autocorrelations. If 'two-sided'
 %           switched, then the matrix is Ix2(T-1).
 %   CI :    95% Confidence Intervals of AFC.
+%
+%   Stand alone version is in .../xDF/Aux/
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
@@ -402,6 +407,8 @@ function [xC,lidx]=xC_fft(Y,T,varargin)
 %
 %   For only a pair time series, this is slower than crosscorr. Only use 
 %   this function if you have a lager number of time series 
+%
+%   Stand alone version is in .../xDF/Aux/
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
