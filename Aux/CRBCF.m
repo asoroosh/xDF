@@ -1,4 +1,4 @@
-function [V,Z,P,BCF] = CRBCF(Y,T,CF)
+function [V,Z,P,BCF] = CRBCF(Y,T,CF,verbose)
 % The way that Pyper says is right!
 % it is fast function i.e. more than 2 time series are accptable for input 
 %
@@ -38,9 +38,12 @@ function [V,Z,P,BCF] = CRBCF(Y,T,CF)
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
+if ~exist('verbose','var')
+    verbose = 1; 
+end
 
-if ~exist('CF','var')
-    disp('CF hasnt been assigned, so set to 1.')
+if ~exist('CF','var') || isempty(CF)
+    if verbose; disp('CF hasnt been assigned, so set to 1.'); end;
     CF = 1; 
 end
 
