@@ -28,18 +28,21 @@ if size(Y,2)~=L
     error('Use IxT or TxI input form.')
 end
 
-Y=Y-mean(Y,2); 
+Y = Y-mean(Y,2); 
 %only works on >2016 Matlabs, but faster!
 % if <2016, use Y=Y-repmat(mean(Y,2),1,L) instead.
 
+YNorm   = sum(abs(Y).^2,2);
 nfft    = 2.^nextpow2(2*L-1); %zero-pad the hell out!
 yfft    = fft(Y,nfft,2); %be careful with the dimensions
+
+clear Y %yeah! that bad!
 
 ACOV = real(ifft(yfft.*conj(yfft),[],2));
 
 ACOV = ACOV(:,1:L);
 
-xAC  = ACOV./sum(abs(Y).^2,2); %normalise the COVs
+xAC  = ACOV./YNorm; %normalise the COVs
 
 if sum(strcmpi(varargin,'two-sided')) %two sided is just mirrored, AC func is symmetric
    xAC  = [xAC(:,end-L+2:end) ; xAC(:,1:L)];
