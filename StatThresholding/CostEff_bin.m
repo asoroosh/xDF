@@ -15,7 +15,7 @@ for d=densrng
     d_net=threshold_proportional(netmat,d);
     
     if ~bflag
-        GE(d_cnt)=efficiency_wei(d_net);
+        GE(d_cnt)=efficiency_wei(d_net,2);
     elseif bflag
         d_net(d_net>0)=1; %binarise
         GE(d_cnt)=efficiency_bin(d_net);
