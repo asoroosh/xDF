@@ -38,17 +38,19 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %   xC_fft.m : estimates cross corr functions super quick via FFT
 %
 %%%EXAMPLES:
-%   Estimating the variance *without* any tapering method
+%   1) Estimating the variance *without* any tapering method
 %   [V,Stat]=xDF(ts,T)
 %
-%   Estimating the variance with Tukey tapering method
+%   2) Estimating the variance with Tukey tapering method
 %   [V,Stat]=xDF(ts,T,'taper','tukey',sqrt(T))
 %   
-%   Estimating the variance with shrinking tapering method and report where
+%   3) Estimating the variance with shrinking tapering method and report where
 %   the variance is smaller than the textbook variance. 
 %   [V,Stat]=xDF(ts,T,'taper','shrink','verbose')
-%
-%   Estimating the variance with shrinking tapering method & without
+%   
+%   We suggest 'taper','shrink' to be used for long BOLD time series. 
+%   
+%   4) Estimating the variance with shrinking tapering method & without
 %   contolling the variance. 
 %   [V,Stat]=xDF(ts,T,'taper','shrink','TVOff')
 %
@@ -86,13 +88,15 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     %----MEMORY SAVE----
     clear ts 
     %-------------------
+    
+    if sum(strcmpi(varargin,'verbose')); verbose = 1; end     
+    
     if sum(strcmpi(varargin,'TVOff'))
-        disp('Variance Curbing is OFF');
+        if verbose; disp('Variance Curbing is OFF'); end;
         TVflag = 0; 
     else
-        disp('Variance Curbing is ON');
+        if verbose; disp('Variance Curbing is ON'); end;
     end    
-    if sum(strcmpi(varargin,'verbose')); verbose = 1; end 
     
     if sum(strcmpi(varargin,'taper'))
         mth = varargin{find(strcmpi(varargin,'taper'))+1};

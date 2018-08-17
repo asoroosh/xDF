@@ -42,6 +42,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     
     mY  = Y-mean(Y,2); 
     Yac = AC_fft(Y,T);
+    
     nLg = T-2;
     
 %-------READING
@@ -87,11 +88,14 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
         iacm_tmp    = inv(toeplitz(Yac(i,:)));
         switch DM
             case 'cholesky'
+                %disp(['Matrix decomp method: ' DM])
                 W_tmp  = chol(iacm_tmp);
             case 'svd'
+                %disp(['Matrix decomp method: ' DM])
                 [U_tmp,S_tmp,~] = svd(iacm_tmp);
                 W_tmp = U_tmp * sqrt(S_tmp) * U_tmp';
             case 'sqrtm'
+                %disp(['Matrix decomp method: ' DM])
                 error('Yeah mate, you dont have that much time!');
         end
         wY(i,:)  = W_tmp*mY(i,:)';
