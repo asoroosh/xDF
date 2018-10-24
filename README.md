@@ -64,7 +64,8 @@ Function `fdr_bh` is an external function [[+]](https://uk.mathworks.com/matlabc
 #### CE-based proportionally Thresholded Functional Connectivity
 ```
 [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','TVOff')
-[~,CE_den]=CostEff_bin(netmat,densrng
+densrng = 0.01:0.01:0.50;
+[~,CE_den]=CostEff_bin(Stat.z,densrng)
 FC = threshold_proportional(Stat.z,CE_den); %FC of IxI
 ```
 
