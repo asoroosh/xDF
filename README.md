@@ -1,19 +1,19 @@
 # Effective Degrees of Freedom of the Pearson's Correlation Coefficient under Serial Correlation
 
 # Table of contents
-1. [Introduction](#introduction)
-2. [Configurations](#Configurations)
-  1. [Dependencies](##Dependencies)
-3. [Examples](#Examples)
-  1. [Using xDF](#xxDF)
-  2. [Constructing Functional Connectivity (FC) Maps](#FC)
-    1. [FDR-based Statistically Thresholded Functional Connectivity](#STFC)
-    2. [CE-based proportionally Thresholded Functional Connectivity](#CEFC)
-    3. [Unthresholded Functional Connectivity](#UFC)
-4. [Simulating time series of arbitrary correlation and autocorrelation structure](#Sim)
-  1. [Correlated but White Time Series](#CW)
-  2. [Uncorrelated but Autocorrelated Time Series](#UA)
-  3. [Correlated and Autocorrelated Time Series](#CA)
+* [Introduction](#introduction)
+* [Configurations](#Configurations)
+  * [Dependencies](##Dependencies)
+* [Examples](#Examples)
+  * [Using xDF](#xxDF)
+  * [Constructing Functional Connectivity (FC) Maps](#FC)
+    * [FDR-based Statistically Thresholded Functional Connectivity](#STFC)
+    * [CE-based proportionally Thresholded Functional Connectivity](#CEFC)
+    * [Unthresholded Functional Connectivity](#UFC)
+* [Simulating time series of arbitrary correlation and autocorrelation structure](#Sim)
+  * [Correlated but White Time Series](#CW)
+  * [Uncorrelated but Autocorrelated Time Series](#UA)
+  * [Correlated and Autocorrelated Time Series](#CA)
 
 
 
