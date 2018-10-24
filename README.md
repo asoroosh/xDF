@@ -1,4 +1,4 @@
-# xDF
+# Effective Degrees of Freedom of the Pearson's Correlation Coefficient under Serial Correlation
 
 # Table of contents
 1. [Introduction](#introduction)
