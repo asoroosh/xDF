@@ -1,4 +1,5 @@
-function [ASAt,Stat]=xDF(ts,T,varargin)
+function [VarHatRho,Stat]=xDF(ts,T,varargin)
+% [VarRho,Stat]=xDF(ts,T,varargin)
 % Estimates variance of Pearson's correlations for non-white time series;
 %   - Exploites matrix operations & fft for quick estimation of multiple
 %   time series. 
@@ -10,11 +11,15 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %   T : Number of data-points. Just for the sake of sanity checks
 %
 %   Optionals:
-%   'taper' : uses a tapering method to denoise AC functions
-%             Tapering options are:
-%             'taper','tukey',M : Single Tukey tapering with cut-off M (as in Woolrich et al 2001)
-%             'taper','shrink': Uses CI of autocorrelation functions 
-%             'taper','curb',M  : Cut-off the autocorrelation function on an arbitrary threshold M 
+%   'taper'    : uses a tapering method to denoise AC functions
+%                Tapering options are:
+%                'taper','tukey',M : Single Tukey tapering with cut-off M (as in Woolrich et al 2001)
+%
+%   'truncate' :
+%                'truncate',M: Uses truncations until arbitrary lag M (as in Anderson 1983)
+%                'truncate','adaptive', : Uses confidence interval of ACF &
+%                remove zero AC coefficients (as suggested in Afyouni, Smith & Nichols 2018)
+%
 %   'TVOff' : if an estimate exceeed the theoritical variance of a white
 %   noise then it curbs the estimate back to (1-rho^2)^2/T. If you want it
 %   off, trigger 'TVOff' [default : 'TVOn']
@@ -22,10 +27,10 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %   'verbose': reports some warnings and logs [default: Off]
 %
 %%%OUTPUTS:
-%   ASAt : Variance of rho_ts a 2D matrix of size IxI with diagonal set to zero
+%   VarRho : Variance of rho_ts a 2D matrix of size IxI with diagonal set to zero
 %   Stat : is a structure, comprised of:
-%        Stat.p.f_Pval: IxI p-values (un-adjusted)
-%        Stat.z.rzf: IxI z-scores (Fisher transformed & adjusted for AC)
+%        Stat.p: IxI p-values (un-adjusted)
+%        Stat.z: IxI z-scores (Fisher transformed & adjusted for AC)
 %
 %        You probably won't care about the below info:
 %        Stat.W2S: IxI of where shrinking has curbed the ACF
@@ -39,24 +44,38 @@ function [ASAt,Stat]=xDF(ts,T,varargin)
 %
 %%%EXAMPLES:
 %   1) Estimating the variance *without* any tapering method
-%   [V,Stat]=xDF(ts,T)
+%   [VarRho,Stat]=xDF(ts,T)
 %
 %   2) Estimating the variance with Tukey tapering method
-%   [V,Stat]=xDF(ts,T,'taper','tukey',sqrt(T))
+%   [VarRho,Stat]=xDF(ts,T,'taper','tukey',sqrt(T))
 %   
 %   3) Estimating the variance with shrinking tapering method and report where
 %   the variance is smaller than the textbook variance. 
-%   [V,Stat]=xDF(ts,T,'taper','shrink','verbose')
+%   [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','verbose')
 %   
 %   We suggest 'taper','shrink' to be used for long BOLD time series. 
 %   
 %   4) Estimating the variance with shrinking tapering method & without
 %   contolling the variance. 
-%   [V,Stat]=xDF(ts,T,'taper','shrink','TVOff')
+%   [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','TVOff')
+%
+%   5) Generate FDR-based statistically thresholded functional connectivity
+%      of BOLD signals, ts:
+%      [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','TVOff')
+%      rsFC = fdr_bh(Stat.p).*Stat.z;
+%
+%   6) Generate CE-based proportional thresholded functional connectivity
+%      of BOLD signals, ts:
+%      [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','TVOff')
+%      [~,CE_den]=CostEff_bin(netmat,densrng
+%      rsFC = threshold_proportional(Stat.z,CE_den); 
+%
+%      Note that 'threshold_proportional' is an external function from BCT
+%      toolbox. 
 %
 %%%REFERENCES:
 %   Variance of Pearson's correlations under serial-correlations
-%   Soroosh Afyouni & Thomas E. Nichols
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
 %   2018
 %   University of Oxford
 %_________________________________________________________________________
@@ -102,8 +121,13 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
         mth = varargin{find(strcmpi(varargin,'taper'))+1};
         if strcmpi(mth,'tukey')
     %Tukey Tappering----------------------------------------
+            if nargin<5
+                error('you MUST set a tukey factor.');
+            elseif ~isnumeric(varargin{find(strcmpi(varargin,'tukey'))+1})
+                error('you MUST set a tukey factor.');
+            end
             M = round(varargin{find(strcmpi(varargin,'tukey'))+1}); %reads the tukey tapering upper lim (i.e. M; Woolrich et al 2001)
-            if isempty(M); error('you MUST set a tukey factor.'); end;
+            disp(['--Tapering with Tukey of M=' num2str(M)])
             for in=1:nn    
                 ac(in,:) = tukeytaperme(ac(in,:),nLg,M);
                 for jn=1:nn 
@@ -111,9 +135,15 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
                     xc_p(in,jn,:) = tukeytaperme(squeeze(xc_p(in,jn,:)),nLg,M);
                 end
             end
-            
-    %Shrinking------------------------------------------------
-        elseif strcmpi(mth,'shrink')
+        else
+            error('You can only choose Tukey as tapering option.')
+        end
+        
+    %Truncation------------------------------------------------
+     elseif sum(strcmpi(varargin,'truncate'))
+         mth = varargin{find(strcmpi(varargin,'truncate'))+1};
+        if strcmpi(mth,'adaptive')
+            disp(['--Adaptive truncation.'])
             for in=1:nn
                 for jn=1:nn
                     W2S(in,jn) = max([FindBreakPoint(ac(in,:),nLg) FindBreakPoint(ac(jn,:),nLg)]);
@@ -128,8 +158,9 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 
             end  
     %Curbing------------------------------------------------
-        elseif strcmpi(mth,'curb')
-            M = round(varargin{find(strcmpi(varargin,'curb'))+1}); %the curbing factor
+        elseif isnumeric(mth)
+            M = mth; %the curbing factor
+            disp(['--Truncation with M=' num2str(M)])
             for in=1:nn    
                 ac(in,:) = curbtaperme(ac(in,:),nLg,M);
                 for jn=1:nn 
@@ -139,7 +170,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
             end
     %--------------------------------------------------------------------------
         else
-            error('choose one of these; shrink | tukey | curb as tapering option.')
+            error('Available options are adapative truncation or arbitrary truncation.')
         end
     end
 %Crazy, eh?
@@ -147,7 +178,7 @@ wgt     = (nLg:-1:1);
 wgtm3   = reshape(repmat((repmat(wgt,[nn,1])),[nn,1]),[nn,nn,numel(wgt)]); %this is shit, eats all the memory!
 Tp      = T-1;
 
- ASAt = (Tp*(1-rho.^2).^2 ...
+ VarHatRho = (Tp*(1-rho.^2).^2 ...
      +   rho.^2 .* sum(wgtm3 .* (SumMat(ac.^2,nLg)  +  xc_p.^2 + xc_n.^2),3)...         %1 2 4
      -   2.*rho .* sum(wgtm3 .* (SumMat(ac,nLg)    .* (xc_p    + xc_n))  ,3)...         % 5 6 7 8
      +   2      .* sum(wgtm3 .* (ProdMat(ac,nLg)    + (xc_p   .* xc_n))  ,3))./(T^2);   % 3 9 
@@ -165,10 +196,10 @@ clear wgtm3 xc_* ac
 
 %Keep your wit about you!
 TV = (1-rho.^2).^2./T;
-if sum(sum(ASAt < TV)) && TVflag
+if sum(sum(VarHatRho < TV)) && TVflag
     % Considering that the variance can *only* get larger in presence of autocorrelation.  
-    idx_ex       = find(ASAt < TV);
-    ASAt(idx_ex) = TV(idx_ex);
+    idx_ex       = find(VarHatRho < TV);
+    VarHatRho(idx_ex) = TV(idx_ex);
     if verbose; disp([num2str(numel(idx_ex)-nn) ' edges had variance smaller than the textbook variance!']); end;
     [x_tmp,y_tmp]=ind2sub([nn nn],idx_ex);
     Stat.EVE = [x_tmp,y_tmp];
@@ -176,7 +207,7 @@ end
 Stat.TV    = TV;
 
 % diagonal is rubbish;
-ASAt(1:nn+1:end) = 0;
+VarHatRho(1:nn+1:end) = 0;
 
 %------- Test Stat-----------------------
 %Pearson's turf -- We don't really wanna go there, eh?
@@ -186,14 +217,14 @@ ASAt(1:nn+1:end) = 0;
 
 %Our turf--------------------------------
 rf      = atanh(rho);
-sf      = ASAt./((1-rho.^2).^2);    %delta method; make sure the N is correct! So they cancel out.
+sf      = VarHatRho./((1-rho.^2).^2);    %delta method; make sure the N is correct! So they cancel out.
 rzf     = rf./sqrt(sf);
 rzf(1:nn+1:end) = 0;
 f_pval  = 2 .* normcdf(-abs(rzf));  %both tails
 f_pval(1:nn+1:end) = 0;             %NaN screws up everything, so get rid of the diag, but becareful here. 
 
-Stat.z.rzf = rzf;
-Stat.p.f_Pval = f_pval;
+Stat.z = rzf;
+Stat.p = f_pval;
 
 %Fisher's turf---------------------------
 % rf          = atanh(rho);
