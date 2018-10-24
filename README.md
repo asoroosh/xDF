@@ -72,7 +72,7 @@ For more options see the usage section of the function.
 
 ### Constructing Functional Connectivity (FC) Maps <a name="fc"></a>
 Here we show how you can use xDF to form functional connectivity of BOLD signals of `I` region of interest and `T` time-points. The examples cover both statistically and proportionally thresholded FCs as well as unthresholded FCs.
-#### FDR-based Statistically Thresholded Functional Connectivity <a name="STFC"></a>
+#### FDR-based Statistically Thresholded Functional Connectivity <a name="stfc"></a>
 
 ```
 [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','TVOff')
