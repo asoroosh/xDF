@@ -29,10 +29,10 @@ The `xDF.m` may be used to:
 * Estimate the p-values for such correlation coefficients
 
 
-## Configurations <a name="Configurations"></a>
+## Configurations <a name="configurations"></a>
 For now, the xDF has only been implemented in MATLAB. Although we will be releasing the Python version in a near future. You need MATLAB statistical toolbox to run the script.
 
-### Dependencies <a name="Dependencies"></a>
+### Dependencies <a name="dependencies"></a>
 
 The `xDF.m` should work without requiring any external function. However it was comprised of several modules which are available individually in `Aux/`
 
