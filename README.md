@@ -76,3 +76,78 @@ Function `threshold_proportional` is an external function from Brain Connectivit
 [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','TVOff')
 FC = Stat.z; %FC of IxI
 ```
+
+## Simulating time series of arbitrary correlation and autocorrelation structure
+
+If you are interested in reproducing results in the paper or sanity check the xDF. You can simulate N time series of desired correlation matrix of `C` and autocorrelation of `A` using function `corrautocorr`. We are showing example of three scenarios for pair time series of length `T`.
+
+### Correlated but White Time Series
+
+```
+>> ts = corrautocorr([0 0],0.9,eye(T),T);
+>> corr(ts')
+
+ans =
+
+    1.0000    0.9014
+    0.9014    1.0000
+```
+
+### Uncorrelated but Autocorrelated Time Series
+
+```
+C_T1 = MakeMeCovMat([0.9:-.1:.1],T); %autocorrelation matrix of first time series (AR9=0.9:0.1)
+C_T2 = MakeMeCovMat(0.4,T); %autocorrelation matrix of first time series (AR1 = 0.4)
+A = cat(3,C_T1,C_T2); % TxTxI time series autocorrelation matrices
+>> ts = corrautocorr([0 0],0,A,T);
+>> corr(ts')
+
+ans =
+
+    1.0000   -0.0350
+   -0.0350    1.0000
+
+>> AC1 = autocorr(ts(1,:),9)
+
+AC1 =
+
+    1.0000    0.8962    0.7922    0.6924    0.6069    0.5357    0.4651    0.3770    0.2810    0.1834
+
+>> AC2 = autocorr(ts(2,:),9)
+
+AC2 =
+
+    1.0000    0.4138    0.0143    0.0269    0.0765    0.0509    0.0116   -0.0213   -0.0587   -0.0593
+```
+
+### Correlated and Autocorrelated Time Series
+
+```
+C_T1 = MakeMeCovMat([0.9:-.1:.1],T); %autocorrelation matrix of first time series (AR9=0.9:0.1)
+C_T2 = MakeMeCovMat(0.4,T); %autocorrelation matrix of first time series (AR1 = 0.4)
+rho = 0.4;
+A = cat(3,C_T1,C_T2); % TxTxI time series autocorrelation matrices
+C = [1 rho; rho 1]; % IxI correlation matrix
+
+ts = corrautocorr([0 0],C,A,T); %simulates the time series using Cholesky decomposition
+
+>> corr(ts')
+
+ans =
+
+    1.0000    0.1938
+    0.1938    1.0000
+
+>> AC1 = autocorr(ts(1,:),9)
+
+AC1 =
+
+    1.0000    0.8992    0.8027    0.6958    0.5933    0.4895    0.3916    0.2960    0.1908    0.0816
+
+>> AC2 = autocorr(ts(2,:),9)
+
+AC2 =
+
+    1.0000    0.4095   -0.0211   -0.0300    0.0033    0.0722    0.0520    0.0565    0.0432    0.0025
+```
+It is important to note that in presence of autocorrelation, the estimated correlation is usually lower than the true correlation. See Section S3.1 in the paper.
