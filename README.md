@@ -1,6 +1,24 @@
 # xDF
 
-## Introduction
+# Table of contents
+1. [Introduction](#introduction)
+2. [Configurations](#Configurations)
+  1. [Dependencies](#Dependencies)
+3. [Examples](#Examples)
+  1. [Using xDF](#xDF)
+  2. [Constructing Functional Connectivity (FC) Maps](#FC)
+    1. [FDR-based Statistically Thresholded Functional Connectivity](#STFC)
+    2. [CE-based proportionally Thresholded Functional Connectivity](#CEFC)
+    3. [Unthresholded Functional Connectivity](#UFC)
+4. [Simulating time series of arbitrary correlation and autocorrelation structure](#Sim)
+  1. [Correlated but White Time Series](#CW)
+  2. [Uncorrelated but Autocorrelated Time Series](#UA)
+  3. [Correlated and Autocorrelated Time Series](#CA)
+
+
+
+
+## Introduction <a name="introduction"></a>
 Collection of scripts to implement the xDF method introduced in
 
 *Afyouni, Smith & Nichols, Effective Degrees of Freedom of the Pearson's Correlation Coefficient under Serial Correlation, BioRxiv DOI: XX - XX - XX*
@@ -11,19 +29,19 @@ The `xDF.m` may be used to:
 * Estimate the p-values for such correlation coefficients
 
 
-## Configurations
+## Configurations <a name="Configurations"></a>
 For now, the xDF has only been implemented in MATLAB. Although we will be releasing the Python version in a near future. You need MATLAB statistical toolbox to run the script.
 
-### Dependencies
+### Dependencies <a name="Dependencies"></a>
 
 The `xDF.m` should work without requiring any external function. However it was comprised of several modules which are available individually in `Aux/`
 
 * `xC_fft.m`: approximates the cross correlations using Wiener–Khinchin theorem
 * `AC_fft.m`: approximates the autocorrelations using Wiener–Khinchin theorem
 
-## Examples
+## Examples <a name="Examples"></a>
 
-### Using xDF
+### Using xDF <a name="xDF"></a>
 Suppose `X` is a matrix of size `IxT` where `I` is number of regions and `T` is number of data-points,
 
 1) Estimating the variance *without* any regularisation on the autocorrelation function:
@@ -52,16 +70,16 @@ Similar regularisation with `M=2*sqrt(T)` as in Woolrich et al 2001:
 
 For more options see the usage section of the function.
 
-### Constructing Functional Connectivity (FC) Maps
+### Constructing Functional Connectivity (FC) Maps <a name="FC"></a>
 Here we show how you can use xDF to form functional connectivity of BOLD signals of `I` region of interest and `T` time-points. The examples cover both statistically and proportionally thresholded FCs as well as unthresholded FCs.
-#### FDR-based Statistically Thresholded Functional Connectivity
+#### FDR-based Statistically Thresholded Functional Connectivity <a name="STFC"></a>
 
 ```
 [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','TVOff')
 FC = fdr_bh(Stat.p).*Stat.z; %FC of IxI
 ```
 Function `fdr_bh` is an external function [[+]](https://uk.mathworks.com/matlabcentral/fileexchange/27418-fdr_bh?focused=5807896&tab=function). It can also be found in `.../xDF/FCThresholding/StatThresholding/`
-#### CE-based proportionally Thresholded Functional Connectivity
+#### CE-based proportionally Thresholded Functional Connectivity <a name="CEFC"></a>
 ```
 [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','TVOff')
 densrng = 0.01:0.01:0.50;
@@ -71,17 +89,17 @@ FC = threshold_proportional(Stat.z,CE_den); %FC of IxI
 
 Function `threshold_proportional` is an external function from Brain Connectivity Toolbox [[+]](https://sites.google.com/site/bctnet/Home/functions).
 
-#### Unthresholded Functional Connectivity
+#### Unthresholded Functional Connectivity <a name="UFC"></a>
 ```
 [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','TVOff')
 FC = Stat.z; %FC of IxI
 ```
 
-## Simulating time series of arbitrary correlation and autocorrelation structure
+## Simulating time series of arbitrary correlation and autocorrelation structure <a name="Sim"></a>
 
 If you are interested in reproducing results in the paper or sanity check the xDF. You can simulate N time series of desired correlation matrix of `C` and autocorrelation of `A` using function `corrautocorr`. We are showing example of three scenarios for pair time series of length `T`.
 
-### Correlated but White Time Series
+### Correlated but White Time Series <a name="CW"></a>
 
 ```
 >> ts = corrautocorr([0 0],0.9,eye(T),T);
@@ -93,7 +111,7 @@ ans =
     0.9014    1.0000
 ```
 
-### Uncorrelated but Autocorrelated Time Series
+### Uncorrelated but Autocorrelated Time Series <a name="UA"></a>
 
 ```
 C_T1 = MakeMeCovMat([0.9:-.1:.1],T); %autocorrelation matrix of first time series (AR9=0.9:0.1)
@@ -120,7 +138,7 @@ AC2 =
     1.0000    0.4138    0.0143    0.0269    0.0765    0.0509    0.0116   -0.0213   -0.0587   -0.0593
 ```
 
-### Correlated and Autocorrelated Time Series
+### Correlated and Autocorrelated Time Series <a name="CA"></a>
 
 ```
 C_T1 = MakeMeCovMat([0.9:-.1:.1],T); %autocorrelation matrix of first time series (AR9=0.9:0.1)
