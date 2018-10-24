@@ -5,7 +5,7 @@
 2. [Configurations](#Configurations)
   1. [Dependencies](#Dependencies)
 3. [Examples](#Examples)
-  1. [Using xDF](#xDF)
+  1. [Using xDF](#xxDF)
   2. [Constructing Functional Connectivity (FC) Maps](#FC)
     1. [FDR-based Statistically Thresholded Functional Connectivity](#STFC)
     2. [CE-based proportionally Thresholded Functional Connectivity](#CEFC)
@@ -39,9 +39,9 @@ The `xDF.m` should work without requiring any external function. However it was 
 * `xC_fft.m`: approximates the cross correlations using Wiener–Khinchin theorem
 * `AC_fft.m`: approximates the autocorrelations using Wiener–Khinchin theorem
 
-## Examples <a name="Examples"></a>
+## Examples <a name="examples"></a>
 
-### Using xDF <a name="xDF"></a>
+### Using xDF <a name="xxDF"></a>
 Suppose `X` is a matrix of size `IxT` where `I` is number of regions and `T` is number of data-points,
 
 1) Estimating the variance *without* any regularisation on the autocorrelation function:
@@ -70,7 +70,7 @@ Similar regularisation with `M=2*sqrt(T)` as in Woolrich et al 2001:
 
 For more options see the usage section of the function.
 
-### Constructing Functional Connectivity (FC) Maps <a name="FC"></a>
+### Constructing Functional Connectivity (FC) Maps <a name="fc"></a>
 Here we show how you can use xDF to form functional connectivity of BOLD signals of `I` region of interest and `T` time-points. The examples cover both statistically and proportionally thresholded FCs as well as unthresholded FCs.
 #### FDR-based Statistically Thresholded Functional Connectivity <a name="STFC"></a>
 
@@ -79,7 +79,7 @@ Here we show how you can use xDF to form functional connectivity of BOLD signals
 FC = fdr_bh(Stat.p).*Stat.z; %FC of IxI
 ```
 Function `fdr_bh` is an external function [[+]](https://uk.mathworks.com/matlabcentral/fileexchange/27418-fdr_bh?focused=5807896&tab=function). It can also be found in `.../xDF/FCThresholding/StatThresholding/`
-#### CE-based proportionally Thresholded Functional Connectivity <a name="CEFC"></a>
+#### CE-based proportionally Thresholded Functional Connectivity <a name="cefc"></a>
 ```
 [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','TVOff')
 densrng = 0.01:0.01:0.50;
@@ -89,7 +89,7 @@ FC = threshold_proportional(Stat.z,CE_den); %FC of IxI
 
 Function `threshold_proportional` is an external function from Brain Connectivity Toolbox [[+]](https://sites.google.com/site/bctnet/Home/functions).
 
-#### Unthresholded Functional Connectivity <a name="UFC"></a>
+#### Unthresholded Functional Connectivity <a name="ufc"></a>
 ```
 [VarRho,Stat]=xDF(ts,T,'truncate','adaptive','TVOff')
 FC = Stat.z; %FC of IxI
@@ -99,7 +99,7 @@ FC = Stat.z; %FC of IxI
 
 If you are interested in reproducing results in the paper or sanity check the xDF. You can simulate N time series of desired correlation matrix of `C` and autocorrelation of `A` using function `corrautocorr`. We are showing example of three scenarios for pair time series of length `T`.
 
-### Correlated but White Time Series <a name="CW"></a>
+### Correlated but White Time Series <a name="cw"></a>
 
 ```
 >> ts = corrautocorr([0 0],0.9,eye(T),T);
@@ -111,7 +111,7 @@ ans =
     0.9014    1.0000
 ```
 
-### Uncorrelated but Autocorrelated Time Series <a name="UA"></a>
+### Uncorrelated but Autocorrelated Time Series <a name="ua"></a>
 
 ```
 C_T1 = MakeMeCovMat([0.9:-.1:.1],T); %autocorrelation matrix of first time series (AR9=0.9:0.1)
@@ -138,7 +138,7 @@ AC2 =
     1.0000    0.4138    0.0143    0.0269    0.0765    0.0509    0.0116   -0.0213   -0.0587   -0.0593
 ```
 
-### Correlated and Autocorrelated Time Series <a name="CA"></a>
+### Correlated and Autocorrelated Time Series <a name="ca"></a>
 
 ```
 C_T1 = MakeMeCovMat([0.9:-.1:.1],T); %autocorrelation matrix of first time series (AR9=0.9:0.1)
