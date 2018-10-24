@@ -1,6 +1,6 @@
 # Effective Degrees of Freedom of the Pearson's Correlation Coefficient under Serial Correlation
 
-# Table of contents
+## Table of contents
 * [Introduction](#introduction)
 * [Configurations](#Configurations)
   * [Dependencies](##Dependencies)
@@ -95,7 +95,7 @@ Function `threshold_proportional` is an external function from Brain Connectivit
 FC = Stat.z; %FC of IxI
 ```
 
-## Simulating time series of arbitrary correlation and autocorrelation structure <a name="Sim"></a>
+## Simulating time series of arbitrary correlation and autocorrelation structure <a name="sim"></a>
 
 If you are interested in reproducing results in the paper or sanity check the xDF. You can simulate N time series of desired correlation matrix of `C` and autocorrelation of `A` using function `corrautocorr`. We are showing example of three scenarios for pair time series of length `T`.
 
