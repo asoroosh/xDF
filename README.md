@@ -3,7 +3,7 @@
 # Table of contents
 1. [Introduction](#introduction)
 2. [Configurations](#Configurations)
-  1. [Dependencies](#Dependencies)
+  1. [Dependencies](##Dependencies)
 3. [Examples](#Examples)
   1. [Using xDF](#xxDF)
   2. [Constructing Functional Connectivity (FC) Maps](#FC)
