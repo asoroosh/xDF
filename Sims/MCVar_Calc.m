@@ -1,8 +1,17 @@
 function [v]=MCVar_Calc(x,y,L,nRlz)
 % [v]=MCVar_Calc(x,y,L)
-% Returns the MC variance of simulated time series
+% Returns the Monte Carlo variance of simulated time series
 %
-% SA, Ox, 2017
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
+%_________________________________________________________________________
+% Soroosh Afyouni, University of Oxford, 2018
+% srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
 
 %assert(size(x)==size(y),'x and y should be the same size.')
 

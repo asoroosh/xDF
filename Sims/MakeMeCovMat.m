@@ -1,4 +1,20 @@
 function [sigCmat,CsigC]=MakeMeCovMat(sigC,ndp,verboseflag)
+% [sigCmat,CsigC]=MakeMeCovMat(sigC,ndp,verboseflag)
+% Forms a covariance matrix from array of coefficients
+%
+% sigC: array of desired covariances 
+% ndp : number of time points
+% 
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
+%_________________________________________________________________________
+% Soroosh Afyouni, University of Oxford, 2018
+% srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
 
 if ~exist('verboseflag','var'); verboseflag=1; end;
 

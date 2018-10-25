@@ -26,11 +26,17 @@ function [t]=corrautocorr_sqrtm(mu,sigR,sigC,ndp)
 %   corr(ts')
 %   ac1=autocorr(ts(1,:)), ac2=autocorr(ts(2,:)) 
 %
-%%%REFERENCE:
-%   Afyouni & Nichols, Estimating the effective degree of freedom for
-%   functional connectivity, 2017
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
+%_________________________________________________________________________
+% Soroosh Afyouni, University of Oxford, 2018
 % srafyouni@gmail.com
-% SA, Ox, 2017
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
+
 
 %Exp sin damped function to model the AC behaviour -- Should be checked
 %with the real data in case it is too off!
