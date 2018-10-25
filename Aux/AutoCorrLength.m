@@ -1,5 +1,5 @@
-function CorrLeng=AutoCorrLength(TS,HowFarTs)
-% function CorrLeng=AutoCorrLength(TS,HowFarTs)
+function CorrLeng=AutoCorrLength(ts,T)
+% function CorrLeng=AutoCorrLength(TS,T)
 % Calculates the Correlation Lengths. i.e. measure how bad the things are
 % in terms of autocorrelation. Adapted from:
 % 
@@ -12,25 +12,17 @@ function CorrLeng=AutoCorrLength(TS,HowFarTs)
 %       offer curbing as lots of very far lags, in case of BOLD time
 %       series, are merely crappy estimation of zero. 
 %
-%       HowFarTs should be a value between 0 and 1:
-%       HowFarTs=round(1./TS) only takes the first lag
-%       HowFarTs=round((TS-1)./TS) consider all lags
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
 %_________________________________________________________________________
-% Soroosh Afyouni, NISOx.org, 2017
+% Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
 
-% ndpr=1200;
+CorrLeng = sum(AC_fft(ts,T).^2);
 
-if size(TS,1)<size(TS,2)
-    disp(['timeseries transposed!'])
-    TS=TS';
 end
-ndpr=length(TS);
-
-%Not the best way as the if statement 
-%should be coming out of the loops
-% size(TS)
-% round(ndpr.*HowFarTs)
-CorrLeng=sum(autocorr(TS',round(ndpr.*HowFarTs)).^2);

@@ -9,8 +9,16 @@ function Wy = WhiteningCorr(Y,L,varargin)
 %   NB! Becareful about number of time series, the estm gets crappier as 
 %   the number of time series grows.  
 %
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
+%_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
 %
 if size(Y,2)~=L
     Y=Y'; %IxT

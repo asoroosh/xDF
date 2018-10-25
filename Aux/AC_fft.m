@@ -14,6 +14,12 @@ function [xAC,CI,ACOV]=AC_fft(Y,L,varargin)
 %   xAC:    IxT-1 matrix of full-lag autocorrelations. If 'two-sided'
 %           switched, then the matrix is Ix2(T-1).
 %   CI :    95% Confidence Intervals of AFC.
+%
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com

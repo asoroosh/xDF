@@ -74,7 +74,8 @@ function [VarHatRho,Stat]=xDF(ts,T,varargin)
 %      toolbox. 
 %
 %%%REFERENCES:
-%   Variance of Pearson's correlations under serial-correlations
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
 %   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
 %   2018
 %   University of Oxford

@@ -8,8 +8,13 @@ function [h_bon,p_bon,p_unadj,alp_bon]=z2p_bon(z_mat)
 % If input is 3D, the 3rd dim is considered as number of subjects, and
 % the std is adjusted accordingly. 
 %
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
 %_________________________________________________________________________
-% Soroosh Afyouni, NISOx.org, 2017
+% Soroosh Afyouni, University of Oxford, 2018
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________

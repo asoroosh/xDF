@@ -4,7 +4,13 @@ function [V,Z,P,R2Zcrt,arone]=AR1MC(Y,T)
 %
 % NB! This function was designed for estimation of *global* correction (subjects)
 % factors.
-%____________________________________________________
+%
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
+%_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;

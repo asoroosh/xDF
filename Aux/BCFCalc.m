@@ -40,7 +40,7 @@ function [cf,edf]=BCFCalc(x1,x2,varargin)
 %
 %
 %_________________________________________________________________________
-% Soroosh Afyouni, NISOx.org, 2017
+% Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________

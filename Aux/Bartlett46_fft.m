@@ -18,11 +18,10 @@ function [V,Z,P,BCF] = Bartlett46_fft(Y,T)
 %   Robert Haining, Geographical Analysis, 1991
 %   Richardson & Clifford, 1991, p300
 %_________________________________________________________________________
-% Soroosh Afyouni, NISOx.org, 2017
+% Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
-%
 if size(Y,1)~=T
     Y=Y'; %IxT
 end

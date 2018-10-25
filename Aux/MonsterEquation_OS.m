@@ -1,6 +1,24 @@
 function [ASAt,CnR] = MonsterEquation_OS(rho,ACx,ACy,T)
+% [ASAt,CnR] = MonsterEquation_OS(rho,ACx,ACy,T)
 % CALCULATE the variance for given rho ACx ACy and T
 % ONLY use this for oracle simulations. 
+%
+%%%INPUTS: all first three inputs should be the *true* values. 
+%
+%%%NOTES:
+% 
+%   See Algorithm 1 of SuppMat in the paper. 
+%
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
+%_________________________________________________________________________
+% Soroosh Afyouni, University of Oxford, 2018
+% srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
 
 % M = 1; 
 % if M>1

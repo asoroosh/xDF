@@ -21,6 +21,11 @@ function [wY,W]=PreWhitenMe(Y,T,varargin)
 %%%NOTES:
 %  Do not forget to specify your model via 'taper' option.
 %
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2018
 % srafyouni@gmail.com

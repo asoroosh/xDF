@@ -28,8 +28,14 @@ function [xC,lidx]=xC_fft(Y,T,varargin)
 %
 %   For only a pair time series, this is slower than crosscorr. Only use 
 %   this function if you have a lager number of time series 
+%
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
 %_________________________________________________________________________
-% Soroosh Afyouni, University of Oxford, 2017
+% Soroosh Afyouni, University of Oxford, 2018
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________

@@ -4,7 +4,17 @@ function [p_unadj,p_adj]=AC_test(xAC,varargin)
 % Test the autocorrelation function, following Anderson's a.c.f variance
 % estimation. NB! Only T/5 of the lags were used to estimate the variance. 
 % p-values can be corrected via 'FDR' or 'Bon' option. 
-% 
+%
+%%%REFERENCES:
+%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%   under Serial Correlation
+%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
+%   2018
+%_________________________________________________________________________
+% Soroosh Afyouni, University of Oxford, 2017
+% srafyouni@gmail.com
+fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
+%_________________________________________________________________________
 alp = 0.05; 
 L   = size(xAC,2);
 I   = size(xAC,1);
