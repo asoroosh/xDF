@@ -34,7 +34,7 @@ For now, the xDF has only been implemented in MATLAB. Although we will be releas
 
 To clone the repository use:
 ```
-git https://github.com/asoroosh/xDF.git
+git clone https://github.com/asoroosh/xDF.git
 ```
 or alternatively download the [zip file](https://github.com/asoroosh/xDF/archive/master.zip).
 
