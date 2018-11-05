@@ -40,7 +40,7 @@ or alternatively download the [zip file](https://github.com/asoroosh/xDF/archive
 
 ### Dependencies <a name="dependencies"></a>
 
-The `xDF.m` should work without requiring any external function. However it was comprised of several modules which are available individually in `Aux/`
+The `xDF.m` should work without requiring any external function. However it is comprised of several internal modules which are also available individually in `Aux/`:
 
 * `xC_fft.m`: approximates the cross correlations using Wiener–Khinchin theorem
 * `AC_fft.m`: approximates the autocorrelations using Wiener–Khinchin theorem
