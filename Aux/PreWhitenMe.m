@@ -69,22 +69,26 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
             for in=1:Nts    
                 Yac(in,:) = tukeytaperme(Yac(in,:),T,M);
             end
-    %Shrinking------------------------------------------------
-        elseif strcmpi(mth,'shrink')
-            for in=1:Nts    
-                Yac(in,:)= shrinkme(Yac(in,:),T);
-            end  
-    %Curbing------------------------------------------------
-        elseif strcmpi(mth,'curb')
-            M = round(varargin{find(strcmpi(varargin,'curb'))+1});
-            for in=1:Nts    
-                Yac(in,:) = curbtaperme(Yac(in,:),T,M);
-            end
-            plot(Yac(in,:))
-    %--------------------------------------------------------------------------
         else
-            error('choose one of these; shrink | tukey | curb as tapering option.')
+            error('Umm, something is wrong in tapering options!')
         end
+    %Shrinking------------------------------------------------
+    elseif sum(strcmpi(varargin,'truncate'))
+            mth = round(varargin{find(strcmpi(varargin,'truncate'))+1});
+            if isnumeric(mth)
+                for in=1:Nts    
+                    Yac(in,:) = curbtaperme(Yac(in,:),T,M);
+                end
+            elseif strcmpi(mth,'adaptive')
+                for in=1:Nts    
+                    Yac(in,:)= shrinkme(Yac(in,:),T);
+                end
+            else
+                error('Umm, something is wrong in truncation options!')
+            end
+    %--------------------------------------------------------------------------
+    else
+        error('choose one of these; shrink | tukey | curb as tapering option.')
     end
 
 %-----PREWHITENING
