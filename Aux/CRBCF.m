@@ -33,6 +33,10 @@ function [V,Z,P,BCF] = CRBCF(Y,T,CF,verbose)
 %   Pyper, B. J., & Peterman, R. M. (1998). Comparison of methods to 
 %   account for autocorrelation in correlation analyses of fish data, 
 %   2140, 2127?2140.
+%
+%  Afyouni, Soroosh, Stephen M. Smith, and Thomas E. Nichols. 
+%  "Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%  under Serial Correlation." bioRxiv (2018): 453795.
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2018
 % srafyouni@gmail.com

@@ -16,16 +16,19 @@ function [wY,W]=PreWhitenMe(Y,T,varargin)
 %  [wY,W_tmp]=PreWhitenMe(Y,T,'taper','tukey',sqrt(T),'DM','Cholesky');
 %   
 %  Use an AR2 model & SVD decomposition:
-%  [wY,W_tmp]=PreWhitenMe(Y,T,'taper','curb',2,'DM','svd');
+%  [wY,W_tmp]=PreWhitenMe(Y,T,'truncate',2,'DM','svd');
 %
 %%%NOTES:
-%  Do not forget to specify your model via 'taper' option.
+%  Do not forget to specify your model via 'taper' or 'truncation' option.
 %
 %%%REFERENCES:
-%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
-%   under Serial Correlation
-%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
-%   2018
+%  Afyouni, Soroosh, Stephen M. Smith, and Thomas E. Nichols. 
+% "Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%  under Serial Correlation." bioRxiv (2018): 453795.
+%
+%  Woolrich, M. W., Ripley, B. D., Brady, M., & Smith, S. M. (2001). 
+%  Temporal autocorrelation in univariate linear modeling of FMRI data. 
+%  NeuroImage, 14(6), 1370?86. http://doi.org/10.1006/nimg.2001.0931
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2018
 % srafyouni@gmail.com
@@ -77,7 +80,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
             mth = round(varargin{find(strcmpi(varargin,'truncate'))+1});
             if isnumeric(mth)
                 for in=1:Nts    
-                    Yac(in,:) = curbtaperme(Yac(in,:),T,M);
+                    Yac(in,:) = curbtaperme(Yac(in,:),T,mth);
                 end
             elseif strcmpi(mth,'adaptive')
                 for in=1:Nts    

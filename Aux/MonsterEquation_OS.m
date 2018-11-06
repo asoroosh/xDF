@@ -10,10 +10,9 @@ function [ASAt,CnR] = MonsterEquation_OS(rho,ACx,ACy,T)
 %   See Algorithm 1 of SuppMat in the paper. 
 %
 %%%REFERENCES:
-%   Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
-%   under Serial Correlation
-%   Soroosh Afyouni, Stephen M. Smith & Thomas E. Nichols
-%   2018
+%  Afyouni, Soroosh, Stephen M. Smith, and Thomas E. Nichols. 
+% "Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%  under Serial Correlation." bioRxiv (2018): 453795.
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2018
 % srafyouni@gmail.com

@@ -17,6 +17,10 @@ function [V,Z,P,BCF] = Bartlett46_fft(Y,T)
 %   Bretherton et al, Journal of Climate, 1999, p2004
 %   Robert Haining, Geographical Analysis, 1991
 %   Richardson & Clifford, 1991, p300
+%
+%  Afyouni, Soroosh, Stephen M. Smith, and Thomas E. Nichols. 
+% "Effective Degrees of Freedom of the Pearson's Correlation Coefficient 
+%  under Serial Correlation." bioRxiv (2018): 453795.
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
