@@ -126,7 +126,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
                 error('you MUST set a tukey factor.');
             end
             M = round(varargin{find(strcmpi(varargin,'tukey'))+1}); %reads the tukey tapering upper lim (i.e. M; Woolrich et al 2001)
-            disp(['--Tapering with Tukey of M=' num2str(M)])
+            if verbose; disp(['--Tapering with Tukey of M=' num2str(M)]); end; 
             for in=1:nn    
                 ac(in,:) = tukeytaperme(ac(in,:),nLg,M);
                 for jn=1:nn 
@@ -142,7 +142,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
      elseif sum(strcmpi(varargin,'truncate'))
          mth = varargin{find(strcmpi(varargin,'truncate'))+1};
         if strcmpi(mth,'adaptive')
-            disp(['--Adaptive truncation.'])
+            if verbose; disp(['--Adaptive truncation.']); end; 
             for in=1:nn
                 for jn=1:nn
                     W2S(in,jn) = max([FindBreakPoint(ac(in,:),nLg) FindBreakPoint(ac(jn,:),nLg)]);
@@ -159,7 +159,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     %Curbing------------------------------------------------
         elseif isnumeric(mth)
             M = mth; %the curbing factor
-            disp(['--Truncation with M=' num2str(M)])
+            if verbose; disp(['--Truncation with M=' num2str(M)]); end; 
             for in=1:nn    
                 ac(in,:) = curbtaperme(ac(in,:),nLg,M);
                 for jn=1:nn 
@@ -222,6 +222,7 @@ rzf(1:nn+1:end) = 0;
 f_pval  = 2 .* normcdf(-abs(rzf));  %both tails
 f_pval(1:nn+1:end) = 0;             %NaN screws up everything, so get rid of the diag, but becareful here. 
 
+%Stat.stable_z = sf;
 Stat.z = rzf;
 Stat.p = f_pval;
 
