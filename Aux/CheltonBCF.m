@@ -1,4 +1,4 @@
-function [V,Z,P,BCF] = CheltonBCF(Y,T,CF)
+function [V,Z,P,BCF] = CheltonBCF(Y,T,CF,verbose)
 % Estimating and correcting the degrees of freedom based on approximations
 % presented in Barteltt's 1946 and Quenouille's 1947.
 %
@@ -39,15 +39,14 @@ function [V,Z,P,BCF] = CheltonBCF(Y,T,CF)
 % srafyouni@gmail.com
 fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
+if ~exist('verbose','var'); verbose = 1;  end
 
-if ~exist('CF','var')
-    disp('CF hasnt been assigned, so set to 1.')
+if ~exist('CF','var') || isempty(CF)
+    if verbose; disp('CF hasnt been assigned, so set to 1.'); end;
     CF = 1; 
 end
 
-if size(Y,1)~=T
-    Y=Y'; %IxT
-end
+if size(Y,1)~=T; Y=Y'; end; %IxT
 
 
 ac        = AC_fft(Y,T);
@@ -58,7 +57,7 @@ ac = curbtaperme(ac,T-2,round((T-2)./CF)); %curb according to Pyper and Peterman
 BCF       = 1+2.*(ac*ac');
 
 if any(any(BCF>T)); BCF (BCF>T) = T; end
-if any(any(BCF<1)); disp('BCF was below 1, set back to 1.'); BCF(BCF<1) = 1; end
+if any(any(BCF<1)) && verbose; disp('BCF was below 1, set back to 1.'); BCF(BCF<1) = 1; end;
 
 V         = BCF./T; %is it?
 Z         = atanh(corr(Y)).*sqrt(T./BCF-3);

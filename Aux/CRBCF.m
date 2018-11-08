@@ -68,7 +68,7 @@ wgt    = (nLg:-1:2)./(T);
 BCF    = 1+2.*(wgt.*ac*ac');
 
 if any(any(BCF>T)); BCF (BCF>T) = T; end
-if any(any(BCF<1)); disp([num2str(numel(find(BCF<1))) ' BCF was below 1, set back to 1.']); BCF(BCF<1) = 1; end
+if any(any(BCF<1)) && verbose; disp([num2str(numel(find(BCF<1))) ' BCF was below 1, set back to 1.']); BCF(BCF<1) = 1; end
 
 %atanh(corr(Y)).*sqrt(T./BCF-3)
 
