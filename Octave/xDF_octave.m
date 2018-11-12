@@ -1,5 +1,5 @@
 function [VarHatRho,Stat]=xDF_octave(ts,T,varargin)
-% [VarRho,Stat]=xDF(ts,T,varargin)
+% [VarRho,Stat]=xDF_octave(ts,T,varargin)
 % Estimates variance of Pearson's correlations for non-white time series;
 %   - Exploites matrix operations & fft for quick estimation of multiple
 %   time series. 

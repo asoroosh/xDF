@@ -47,6 +47,16 @@ The `xDF.m` should work without requiring any external function. However it is c
 * `xC_fft.m`: approximates the cross correlations using Wiener–Khinchin theorem
 * `AC_fft.m`: approximates the autocorrelations using Wiener–Khinchin theorem
 
+
+### Octave <a name="octave"></a>
+xDF is also available for Octave via `xDF_octave.m`. Note that you require statistics package to run the script in Octave:
+```
+pkg install -forge io
+pkg install -forge statistics
+```
+We have only tested the script on Octave 4.4.1. 
+
+
 ## Examples <a name="examples"></a>
 
 ### Using xDF <a name="xxDF"></a>
