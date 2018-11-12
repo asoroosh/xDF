@@ -6,6 +6,7 @@
 * [Introduction](#introduction)
 * [Configurations](#Configurations)
   * [Dependencies](##Dependencies)
+  * [Octave](##octave)
 * [Examples](#Examples)
   * [Using xDF](#xxDF)
   * [Constructing Functional Connectivity (FC) Maps](#FC)
@@ -54,7 +55,7 @@ xDF is also available for Octave via `xDF_octave.m`. Note that you require stati
 pkg install -forge io
 pkg install -forge statistics
 ```
-We have only tested the script on Octave 4.4.1. 
+We have only tested the script on Octave 4.4.1.
 
 
 ## Examples <a name="examples"></a>
