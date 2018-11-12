@@ -6,7 +6,7 @@
 * [Introduction](#introduction)
 * [Configurations](#Configurations)
   * [Dependencies](##Dependencies)
-  * [Octave](##octave)
+  * [Octave](##Octave)
 * [Examples](#Examples)
   * [Using xDF](#xxDF)
   * [Constructing Functional Connectivity (FC) Maps](#FC)
