@@ -24,7 +24,7 @@
 ## Introduction <a name="introduction"></a>
 Collection of scripts to implement the xDF method introduced in
 
-*Afyouni, Smith & Nichols, Effective Degrees of Freedom of the Pearson's Correlation Coefficient under Serial Correlation, BioRxiv DOI: XX - XX - XX*
+*Afyouni, Soroosh, Stephen M. Smith, and Thomas E. Nichols. "Effective Degrees of Freedom of the Pearson's Correlation Coefficient under Serial Correlation." bioRxiv (2018): 453795.*
 
 The `xDF.m` may be used to:
 * Estimate the variance of Pearson's correlation coefficients
