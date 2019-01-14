@@ -114,6 +114,8 @@ def ACL(ts,T):
     SA, Ox, 2019
     """
     return(np.sum(AC_fft(ts,T)**2,axis=1))
+    
+    
 #import scipy.io
 #import numpy as np
 #V = '/Users/sorooshafyouni/Home/BCF/BCFAnal/FC/100HCPTimeSeries/Yeo/HCP_FPP_124422_OnlyMTS.mat'

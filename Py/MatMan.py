@@ -107,6 +107,7 @@ def CorrMat(ts,T,method='rho',copy=True):
     
     #R[range(N),range(N)] = 0
     if method.lower()=='rho':
+        R[range(N),range(N)] = 0
         return(R)
     elif method.lower()=='naive':
         Z = np.arctanh(R)*np.sqrt(T-3)
