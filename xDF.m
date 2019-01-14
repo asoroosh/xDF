@@ -100,9 +100,9 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     ac   = ac(:,2:T-1); %The last element of ACF is rubbish, the first one is 1, so why bother?!
     nLg  = T-2;         
     %Cross-corr---------------------------------------------------------------- 
-    xcf = xC_fft(ts,T);
-    xc_n      = flip(xcf(:,:,2:T-1),3); %positive-lag xcorrs
-    xc_p      = xcf(:,:,T+1:end-1); %negative-lag xcorrs
+    xcf   = xC_fft(ts,T);
+    xc_n  = flip(xcf(:,:,2:T-1),3); %positive-lag xcorrs
+    xc_p  = xcf(:,:,T+1:end-1); %negative-lag xcorrs
     %----MEMORY SAVE----
     clear ts 
     %-------------------
@@ -134,6 +134,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
                     xc_p(in,jn,:) = tukeytaperme(squeeze(xc_p(in,jn,:)),nLg,M);
                 end
             end
+            ac(1,1:50)
         else
             error('You can only choose Tukey as tapering option.')
         end
@@ -199,7 +200,7 @@ if sum(sum(VarHatRho < TV)) && TVflag
     % Considering that the variance can *only* get larger in presence of autocorrelation.  
     idx_ex       = find(VarHatRho < TV);
     VarHatRho(idx_ex) = TV(idx_ex);
-    if verbose; disp([num2str(numel(idx_ex)-nn) ' edges had variance smaller than the textbook variance!']); end;
+    if verbose; disp([num2str((numel(idx_ex)-nn)/2) ' edges had variance smaller than the textbook variance!']); end;
     [x_tmp,y_tmp]=ind2sub([nn nn],idx_ex);
     Stat.EVE = [x_tmp,y_tmp];
 end  
@@ -325,7 +326,7 @@ function where2stop = FindBreakPoint(acs,T)
     end;
 end
 %--------------------------------------------------------------------------
-function ct_ts=curbtaperme(acs,T,M)
+function ct_ts = curbtaperme(acs,T,M)
 % Curb the autocorrelations, according to Anderson 1984
 % multi-dimensional, and therefore is fine!
 %SA, Ox, 2018
@@ -338,7 +339,7 @@ function ct_ts=curbtaperme(acs,T,M)
     ct_ts      = msk.*acs;
 end
 %--------------------------------------------------------------------------
-function tt_ts=tukeytaperme(acs,T,M)
+function tt_ts = tukeytaperme(acs,T,M)
 %performs Single Tukey Tapering for given length of window, M, and initial
 %value, intv. intv should only be used on crosscorrelation matrices.
 %
