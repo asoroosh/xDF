@@ -156,9 +156,7 @@ def stat_threshold(Z,mce='fdr_bh',a_level=0.05,side='two',copy=True):
     [Hv,adjpvalsv] = smmt.multipletests(Pv,method = mce)[:2]    
     adj_pvals = np.zeros(Z.shape)
     Zt = np.zeros(Z.shape)
-        
-    print(np.invert(Hv))
-    
+            
     Zv[np.invert(Hv)] = 0 
     Zt[Idx] = Zv
     Zt = Zt + Zt.T; 
@@ -458,3 +456,31 @@ def autofix(W, copy=True):
         W = np.around(W, decimals=5)
 
     return W
+
+def density_und(CIJ):
+    '''
+    Density is the fraction of present connections to possible connections.
+
+    Parameters
+    ----------
+    CIJ : NxN np.ndarray
+        undirected (weighted/binary) connection matrix
+
+    Returns
+    -------
+    kden : float
+        density
+    N : int
+        number of vertices
+    k : int
+        number of edges
+
+    Notes
+    -----
+    Assumes CIJ is undirected and has no self-connections.
+            Weight information is discarded.
+    '''
+    n = len(CIJ)
+    k = np.size(np.where(np.triu(CIJ).flatten()))
+    kden = k / ((n * n - n) / 2)
+    return kden, n, k
