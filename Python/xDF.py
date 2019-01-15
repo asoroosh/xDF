@@ -40,7 +40,7 @@ def xDF_Calc(ts,T,\
     
     ts_std = np.std(ts,axis=1,ddof=1)
     ts     = ts/np.transpose(np.tile(ts_std,(T,1)));   #standardise
-    
+    print('xDF_Calc::: Time series standardised by their standard deviations.')
     # READ AND CHECK 0---------------------------------------------------------    
     # -------------------------------------------------------------------------
     
@@ -68,7 +68,7 @@ def xDF_Calc(ts,T,\
         if methodparam=='':
             M = np.sqrt(T)
         else: M = methodparam
-        if verbose: print('xDF::: AC Regularisation: Tukey tapering of M = ' + str(int(np.round(M))))
+        if verbose: print('xDF_Calc::: AC Regularisation: Tukey tapering of M = ' + str(int(np.round(M))))
         ac   = tukeytaperme(ac,nLg,M)
         xc_p = tukeytaperme(xc_p,nLg,M)
         xc_n = tukeytaperme(xc_n,nLg,M)
@@ -79,7 +79,7 @@ def xDF_Calc(ts,T,\
         if type(methodparam)==str:    #Adaptive Truncation
             if methodparam.lower()!='adaptive':
                 raise ValueError('What?! Choose adaptive as the option, or pass an integer for truncation')
-            if verbose: print('xDF::: AC Regularisation: Adaptive Truncation')         
+            if verbose: print('xDF_Calc::: AC Regularisation: Adaptive Truncation')         
             [ac,bp] = shrinkme(ac,nLg)
             #truncate the cross-correlations, by the breaking point found from the ACF. (choose the largest of two)
             for i in np.arange(N):
@@ -88,12 +88,12 @@ def xDF_Calc(ts,T,\
                     xc_p[i,j,:]  = curbtaperme(xc_p[i,j,:],nLg,maxBP,verbose=False)
                     xc_n[i,j,:]  = curbtaperme(xc_n[i,j,:],nLg,maxBP,verbose=False)
         elif type(methodparam) == int: #Npne-Adaptive Truncation
-            if verbose: print('xDF::: AC Regularisation: Non-adaptive Truncation on M = ' + str(methodparam))         
+            if verbose: print('xDF_Calc::: AC Regularisation: Non-adaptive Truncation on M = ' + str(methodparam))         
             ac    = curbtaperme(ac,nLg,methodparam)
             xc_p  = curbtaperme(xc_p,nLg,methodparam)
             xc_n  = curbtaperme(xc_n,nLg,methodparam)
             
-        else: raise ValueError('xDF::: methodparam for truncation method should be either str or int.')
+        else: raise ValueError('xDF_Calc::: methodparam for truncation method should be either str or int.')
     # Start of Regularisation--------------------------------------------------
     # -------------------------------------------------------------------------
     

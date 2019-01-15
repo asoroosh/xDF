@@ -148,7 +148,7 @@ def stat_threshold(Z,mce='fdr_bh',a_level=0.05,side='two',copy=True):
     elif side=='two' or 'double':
         sideflag = 2
     
-    Idx = np.triu_indices(Z.shape[0])
+    Idx = np.triu_indices(Z.shape[0],1)
     Zv = Z[Idx]
     
     Pv = sp.norm.cdf(-np.abs(Zv))*sideflag
