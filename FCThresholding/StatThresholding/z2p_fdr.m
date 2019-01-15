@@ -51,7 +51,7 @@ else
     ms_std=1;
 end
 
-p_unadj = 2*normcdf(-abs(z_mat),0,ms_std);
+p_unadj = 2.*normcdf(-abs(z_mat),0,ms_std);
 
 %just to make sure that digonal won't be detected!!
 if itsamat; nn=size(p_unadj,1); p_unadj(1:nn+1:end) = 1; end
