@@ -4,11 +4,19 @@ V = '/Users/sorooshafyouni/Home/BCF/BCFAnal/FC/100HCPTimeSeries/Yeo/HCP_FPP_1244
 load(V)
 T = 1200;
 
+
+[V,Stat] = xDF(mts,T);
+[h_bon,padj_bon,p_unadj,pval_cv_bon] = z2p_bon(Stat.z);
+numel(find(h_bon))/2
+
+[V,Stat] = xDF(mts,T,'truncate',T/4,'verbose');
+[h_bon,padj_bon,p_unadj,pval_cv_bon] = z2p_bon(Stat.z);
+numel(find(h_bon))/2
+
 [V,Stat] = xDF(mts,T,'truncate','adaptive','verbose');
+[h_bon,padj_bon,p_unadj,pval_cv_bon] = z2p_bon(Stat.z);
+numel(find(h_bon))/2
 
-Stat.z(1:5,1:5)
-
-[h_fdr,padj_fdr,p_unadj,pval_cv_fdr] = z2p_fdr(Stat.z);
-numel(find(h_fdr))/2
-
-[h_fdr,padj_fdr,p_unadj,pval_cv_fdr] = z2p_bon(Stat.z);
+[V,Stat] = xDF(mts,T,'taper','tukey',sqrt(T),'verbose');
+[h_bon,padj_bon,p_unadj,pval_cv_bon] = z2p_bon(Stat.z);
+numel(find(h_bon))/2
