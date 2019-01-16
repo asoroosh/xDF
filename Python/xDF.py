@@ -18,8 +18,8 @@ import scipy.stats as sp
 ##############################################################################
 
 def xDF_Calc(ts,T,\
-             method      = 'tukey',\
-             methodparam = '',\
+             method      = 'truncate',\
+             methodparam = 'adaptive',\
              verbose     = True,\
              TV          = True,\
              copy        = True):
