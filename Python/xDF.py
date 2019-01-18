@@ -133,7 +133,7 @@ def xDF_Calc(ts,T,\
     NumTVEx = (np.shape(idx_ex)[1])/2;
     #print(NumTVEx)
     
-    if NumTVEx>0 and TV:
+c    if NumTVEx>0 and TV:
         if verbose: print('Variance truncation is ON.')
         # Assuming that the variance can *only* get larger in presence of autocorrelation.  
         VarHatRho[idx_ex] = TV_val[idx_ex];
