@@ -134,7 +134,6 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
                     xc_p(in,jn,:) = tukeytaperme(squeeze(xc_p(in,jn,:)),nLg,M);
                 end
             end
-            ac(1,1:50)
         else
             error('You can only choose Tukey as tapering option.')
         end

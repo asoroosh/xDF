@@ -48,8 +48,9 @@ def xDF_Calc(ts,T,\
 ##### Estimate xC and AC ------------------------------------------------------
     
     #Corr----------------------------------------------------------------------
-    rho    = CorrMat(ts,T)
-    rho    = np.round(rho,7)
+    rho,znaive    = CorrMat(ts,T)
+    rho           = np.round(rho,7)
+    znaive        = np.round(znaive,7)
     #Autocorr------------------------------------------------------------------
     [ac,CI] = AC_fft(ts,T); 
     ac   = ac[:,1:T-1]; #The last element of ACF is rubbish, the first one is 1, so why bother?!
@@ -133,7 +134,7 @@ def xDF_Calc(ts,T,\
     NumTVEx = (np.shape(idx_ex)[1])/2;
     #print(NumTVEx)
     
-c    if NumTVEx>0 and TV:
+    if NumTVEx>0 and TV:
         if verbose: print('Variance truncation is ON.')
         # Assuming that the variance can *only* get larger in presence of autocorrelation.  
         VarHatRho[idx_ex] = TV_val[idx_ex];
@@ -175,6 +176,7 @@ c    if NumTVEx>0 and TV:
     
     xDFOut = {'p':f_pval,\
               'z':rzf,\
+              'znaive': znaive,\
               'v':VarHatRho,\
               'TV':TV_val,\
               'TVExIdx':idx_ex}

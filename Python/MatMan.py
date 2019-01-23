@@ -105,15 +105,22 @@ def CorrMat(ts,T,method='rho',copy=True):
     N = np.shape(ts)[0];
     R = np.corrcoef(ts)
     
+    Z = np.arctanh(R)*np.sqrt(T-3)
+    
+    R[range(N),range(N)] = 0
+    Z[range(N),range(N)] = 0
+    
+    return R, Z
+    
     #R[range(N),range(N)] = 0
-    if method.lower()=='rho':
-        R[range(N),range(N)] = 0
-        return(R)
-    elif method.lower()=='naive':
-        Z = np.arctanh(R)*np.sqrt(T-3)
-        Z[range(N),range(N)] = 0
-        return(Z)
-    else: print('Choose between either Type==`Naive` or Type==`rho`')
+#    if method.lower()=='rho':
+#        R[range(N),range(N)] = 0
+#        return(R)
+#    elif method.lower()=='naive':
+#        Z = np.arctanh(R)*np.sqrt(T-3)
+#        Z[range(N),range(N)] = 0
+#        return(Z)
+#    else: print('Choose between either Type==`Naive` or Type==`rho`')
 
 
 def stat_threshold(Z,mce='fdr_bh',a_level=0.05,side='two',copy=True):
