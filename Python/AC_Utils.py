@@ -32,7 +32,7 @@ def AC_fft(Y,T,copy=True):
     mY2 = np.mean(Y,axis=1)
     Y = Y-np.transpose(np.tile(mY2,(T,1)));
 
-    nfft  = nextpow2(2*T-1); #zero-pad the hell out!
+    nfft  = int(nextpow2(2*T-1)); #zero-pad the hell out!
     yfft  = np.fft.fft(Y,n=nfft,axis=1); #be careful with the dimensions
     ACOV  = np.real(np.fft.ifft(yfft*np.conj(yfft),axis=1));
     ACOV  = ACOV[:,0:T];
@@ -104,7 +104,7 @@ def nextpow2(x):
     often useful for finding the nearest power of two sequence
     length for FFT operations.
     """
-    return 1 if x == 0 else 2**np.ceil(np.log2(x))
+    return 1 if x == 0 else int(2**np.ceil(np.log2(x)))
 
 
 def ACL(ts,T):

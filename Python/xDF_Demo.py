@@ -30,8 +30,7 @@ print(len(np.where(Z!=0)[0])/2)
 
 print('+++++++ xDF with ADAPTIVE truncation::: ++++++++++++++++++++++++++++++')
 xDFOut_ta    = xDF_Calc(mts,T,method='truncate',methodparam = 'adaptive',verbose=True)
-
-Z = stat_threshold(xDFOut_ta['z'],mce='b')[0]
+Z = stat_threshold(xDFOut_ta['z'],mce='fdr_bh')[0]
 print(len(np.where(Z!=0)[0])/2)
 
 print('+++++++ xDF without tapering::: +++++++++++++++++++++++++++++++++++++')
