@@ -27,12 +27,15 @@ import matplotlib.pyplot as plt
 #        SA, Ox, 2018 """
 #    return X*DaShape[1] + Y
 
-def OLSRes(YOrig,RG,T):
+def OLSRes(YOrig,RG,T,copy=True):
     """ 
     Or how to deconfound stuff!
     For regressing out stuff from your time series, quickly and nicely!
     SA,Ox,2019
     """
+    if copy:
+        YOrig = YOrig.copy()
+        
     if np.shape(YOrig)[0]!=T or np.shape(RG)[0]!=T:
         raise ValueError('The Y and the X should be TxI format.')
         
