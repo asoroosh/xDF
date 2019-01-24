@@ -19,6 +19,26 @@ import matplotlib.pyplot as plt
 #        SA, Ox, 2018 """
 #    return X*DaShape[1] + Y
 
+def OLSRes(YOrig,RG,T):
+    """ 
+    For regressing out stuff from your time series, quickly and nicely!
+    SA,Ox,2019
+    """
+    if np.shape(YOrig)[0]!=T or np.shape(RG)[0]!=T:
+        raise ValueError('The Y and the X should be TxI format.')
+        
+    #demean anyways!
+    mRG = np.mean(RG,axis=0)
+    RG = RG-np.tile(mRG,(T,1));
+    
+    #B       = np.linalg.solve(RG,YOrig) # more stable than pinv
+    invRG   = np.linalg.pinv(RG)    
+    B       = np.dot(invRG,YOrig)
+    Yhat    = np.dot(RG,B) # find the \hat{Y}
+    Ydeconf = YOrig-Yhat #get the residuals -- i.e. cleaned time series
+    
+    return Ydeconf
+
 def issymmetric(W):
     """Check whether a matrix is symmetric"""
     return((W.transpose() == W).all())
