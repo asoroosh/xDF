@@ -3,6 +3,14 @@
 """
 Created on Fri Jan 11 16:41:29 2019
 
+
+Many of these functions were copy pasted from bctpy package:
+    https://github.com/aestrivex/bctpy
+under GNU V3.0:
+    https://github.com/aestrivex/bctpy/blob/master/LICENSE
+    
+
+
 @author: sorooshafyouni
 University of Oxford, 2019
 """
@@ -21,6 +29,7 @@ import matplotlib.pyplot as plt
 
 def OLSRes(YOrig,RG,T):
     """ 
+    Or how to deconfound stuff!
     For regressing out stuff from your time series, quickly and nicely!
     SA,Ox,2019
     """
