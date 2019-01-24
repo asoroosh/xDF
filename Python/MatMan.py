@@ -204,8 +204,10 @@ def stat_threshold(Z,mce='fdr_bh',a_level=0.05,side='two',copy=True):
                 
     return Zt, binarize(Zt), adj_pvals 
 
-def RemoveNeg(Mats):
+def RemoveNeg(Mats,copy=True):
     """ quickly remove negative values"""
+    if copy:
+        Mats = Mats.copy()
     Mats[Mats<0] = 0
     return(Mats)
     
