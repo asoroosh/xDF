@@ -42,7 +42,6 @@ def OLSRes(YOrig,RG,T,copy=True):
     #demean anyways!
     mRG = np.mean(RG,axis=0)
     RG = RG-np.tile(mRG,(T,1));
-    
     #B       = np.linalg.solve(RG,YOrig) # more stable than pinv
     invRG   = np.linalg.pinv(RG)    
     B       = np.dot(invRG,YOrig)
