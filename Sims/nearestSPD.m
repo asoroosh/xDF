@@ -35,6 +35,7 @@ p    = 1;
 k    = 0;
 while p ~= 0
   [~,p]  = chol(Ahat);
+  disp('nearestSPD:: Still not there!')
   k = k + 1;
   if p  ~= 0
     mineig = min(eig(Ahat));
