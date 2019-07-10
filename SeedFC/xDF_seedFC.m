@@ -54,7 +54,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
 %_________________________________________________________________________
 
     if  size(ts_img,2) ~= T || size(ts_sd,2) ~= T %makes sure dimensions are sound
-        warning('Make sure time series are in IxT and are equally sized')
+        error('Make sure time series are in IxT and are equally sized')
     end
     
     W2S = []; Stat.EVE=[]; TVflag = 1; verbose = 0;

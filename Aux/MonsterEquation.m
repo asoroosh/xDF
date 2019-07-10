@@ -39,8 +39,8 @@ function [ASAt,Stat]=MonsterEquation(ts,T,varargin)
             acx_n = tukeytaperme(acx_n,M);
             acx_p = tukeytaperme(acx_p,M);
     %Shrinkage------------------------------------------------
-        elseif strcmpi(mth,'shrink')
-            M = round(varargin{find(strcmpi(varargin,'shrink'))+1});
+        elseif strcmpi(mth,'truncate')
+            M = round(varargin{find(strcmpi(varargin,'truncate'))+1});
             
             %disp('TAPER SHRINK')
             
