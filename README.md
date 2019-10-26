@@ -5,7 +5,7 @@
 ## Highlights
 * Autocorrelation biases the standard error of Pearson's correlation and breaks the variance-stabilising property of Fisher's transformation.
 * Severity of resting state fMRI autocorrelation varies systematically with region of interest size, and is heterogeneous over subjects.
-* Commonly used methods (see Aux directory) to adjust correlation standard errors are themselves biased when true correlation is non-zero due to a confounding effect.
+* Commonly used methods (see `mis` directory) to adjust correlation standard errors are themselves biased when true correlation is non-zero due to a confounding effect.
 * We propose a “xDF” method to provide accurate estimates of the variance of Pearson’s correlation -- before or after Fisher’s transformation -- that considers auto-correlation of each time series as well as instantaneous and lagged cross-correlation.
 * Accounting for the autocorrelation in resting-state functional connectivity considerably alters the graph theoretical description of human connectome.
 
@@ -52,7 +52,7 @@ or alternatively download the [zip file](https://github.com/asoroosh/xDF/archive
 
 ### Dependencies <a name="dependencies"></a>
 
-The `xDF.m` should work without requiring any external function. However it is comprised of several internal modules which are also available individually in `Aux/`:
+The `xDF.m` should work without requiring any external function. However it is comprised of several internal modules which are also available individually in `mis/`:
 
 * `xC_fft.m`: approximates the cross correlations using Wiener–Khinchin theorem
 * `AC_fft.m`: approximates the autocorrelations using Wiener–Khinchin theorem
