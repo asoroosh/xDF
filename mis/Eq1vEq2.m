@@ -6,8 +6,6 @@ clear
 % SA, 2021
 % #########################################################################
 
-addpath(genpath('/Users/sorooshafyouni/Home/GitClone/xDF'))
-
 T = 500; 
 nn = 2;
 n1 = 1; n2 = 2;
@@ -22,10 +20,14 @@ n1 = 1; n2 = 2;
 %ts = randn(T,nn)';
 
 % correlated white ########################################################
+% If you choose to simulate this scenario, you need xDF added to your path
+%
 %rhosim = 0.7; 
 %ts = corrautocorr([0 0],rhosim,eye(T),T);
 
 % correlated AR1 ##########################################################
+% If you choose to simulate this scenario, you need xDF added to your path
+%
 rhosim = 0.7; 
 ARsim  = 0.5; 
 ts = corrautocorr([0 0],rhosim,MakeMeCovMat(ARsim,T),T);
@@ -92,4 +94,44 @@ ASAt0 = (T^(-2)).*( (rho_m.^2./2) .* trace(Sigma_X*Sigma_X) + (rho_m.^2./2) .* t
     - rho_m .* trace(Sigma_X*Sigma_XY) - rho_m .* trace(Sigma_YX*Sigma_X) - rho_m .* trace(Sigma_XY*Sigma_Y) - rho_m .* trace(Sigma_Y*Sigma_YX) ); %9   
 
 disp(['Eq(1): ' num2str(ASAt0) ', Eq(2): ' num2str(FAST_New(1,2)) ])
+
+
+%--------------------------------------------------------------------------
+% Util function:
+%--------------------------------------------------------------------------
+function [SM0] = SumMat(Y0,T)
+    %hopefully faster than Matlab's dumb sum of sum!
+    %SA, Ox, 2018
+
+    %becareful with this function, this is really tricky to use!
+    if ~sum(ismember(size(Y0),T)); error('There is something wrong, mate!'); end
+    if size(Y0,1) ~= T; Y0 = Y0'; end
+
+    nn  = size(Y0,2);
+    idx = find(triu(ones(nn),1))';
+    SM0 = zeros(nn,nn,T);
+    for i=idx
+        [x,y]      = ind2sub(nn,i);
+        SM0(x,y,:) = (Y0(:,x)+Y0(:,y));
+        SM0(y,x,:) = (Y0(:,y)+Y0(:,x));
+    end
+end
+
+function [SM0] = ProdMat(Y0,T)
+    %hopefully faster than Matlab's dumb prod of prod!
+    %SA, Ox, 2018
+
+    %becareful with this function, this is really tricky to use!
+    if ~sum(ismember(size(Y0),T)); error('There is something wrong, mate!'); end
+    if size(Y0,1) ~= T; Y0 = Y0'; end
+
+    nn  = size(Y0,2);
+    idx = find(triu(ones(nn),1))';
+    SM0 = zeros(nn,nn,T);
+    for i=idx
+        [x,y]      = ind2sub(nn,i);
+        SM0(x,y,:) = (Y0(:,x).*Y0(:,y));
+        SM0(y,x,:) = (Y0(:,y).*Y0(:,x));
+    end
+end
 
