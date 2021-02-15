@@ -82,13 +82,14 @@ rho_m = rho(1,2);
 % Eq 1 --------------------------------------------------------------------
 % #########################################################################
 
- ASAt = ((rho_m.^2./2) .* (trace(Sigma_X^2) + trace(Sigma_Y^2))... %1 & 2
-        + trace(Sigma_X*Sigma_Y) + rho_m^2 .* trace(Sigma_XY*Sigma_YX)... %3&4
-        - rho_m .* trace(Sigma_X*Sigma_XY) - rho_m .* trace(Sigma_X*Sigma_YX)... % 5&6
-        - rho_m .* trace(Sigma_Y*Sigma_XY) - rho_m .* trace(Sigma_Y*Sigma_YX)...%7&8
-        + trace(Sigma_XY^2))./T^2; %9
+%  ASAt = ((rho_m.^2./2) .* (trace(Sigma_X^2) + trace(Sigma_Y^2))... %1 & 2
+%         + trace(Sigma_X*Sigma_Y) + rho_m^2 .* trace(Sigma_XY*Sigma_YX)... %3&4
+%         - rho_m .* trace(Sigma_X*Sigma_XY) - rho_m .* trace(Sigma_X*Sigma_YX)... % 5&6
+%         - rho_m .* trace(Sigma_Y*Sigma_XY) - rho_m .* trace(Sigma_Y*Sigma_YX)...%7&8
+%         + trace(Sigma_XY^2))./T^2; %9
 %num2str(ASAt) 
 
+% Exact order as is in Eq 1 paper. 
 ASAt0 = (T^(-2)).*( (rho_m.^2./2) .* trace(Sigma_X*Sigma_X) + (rho_m.^2./2) .* trace(Sigma_Y*Sigma_Y) ...         % 1 & 2
     + rho_m.^2 .* trace(Sigma_YX*Sigma_XY) + trace(Sigma_XY*Sigma_XY) + trace(Sigma_X*Sigma_Y) ... % 3&4
     - rho_m .* trace(Sigma_X*Sigma_XY) - rho_m .* trace(Sigma_YX*Sigma_X) - rho_m .* trace(Sigma_XY*Sigma_Y) - rho_m .* trace(Sigma_Y*Sigma_YX) ); %9   
