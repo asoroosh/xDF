@@ -30,7 +30,7 @@ function [VarHatRho,Stat]=xDF(ts,T,varargin)
 %   VarRho : Variance of rho_ts a 2D matrix of size IxI with diagonal set to zero
 %   Stat : is a structure, comprised of:
 %        Stat.p: IxI p-values (un-adjusted)
-%        Stat.z: IxI z-scores (Fisher transformed & adjusted for AC)
+%        Stat.z: IxI z-scores (adjusted z-scores, don't be confused by Fisher's z)
 %
 %        You probably won't care about the below info:
 %        Stat.W2S: IxI of where shrinking has curbed the ACF
@@ -174,21 +174,23 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     end
 %Crazy, eh?
 wgt     = (nLg:-1:1);
-wgtm3   = reshape(repmat((repmat(wgt,[nn,1])),[nn,1]),[nn,nn,numel(wgt)]); %this is shit, eats all the memory!
+wgtm3   = reshape(repmat((repmat(wgt,[nn,1])),[nn,1]),[nn,nn,numel(wgt)]); %this eats all the memory!
 Tp      = T-1;
 
  VarHatRho = (Tp*(1-rho.^2).^2 ...
      +   rho.^2 .* sum(wgtm3 .* (SumMat(ac.^2,nLg)  +  xc_p.^2 + xc_n.^2),3)...         %1 2 4
      -   2.*rho .* sum(wgtm3 .* (SumMat(ac,nLg)    .* (xc_p    + xc_n))  ,3)...         % 5 6 7 8
      +   2      .* sum(wgtm3 .* (ProdMat(ac,nLg)    + (xc_p   .* xc_n))  ,3))./(T^2);   % 3 9 
+
  
-%this part if from PearCorrVarEst.m; when you assume the xCORR are symm! 
-% wgtm2   = repmat(wgt,[nn,1]);
-% ASAt = [Tp                  .* (1-rho.^2).^2 ...
-%        + rho.^2             .* sum(SumMat((wgtm2.*ac.^2),nLg),3) ...                % 1    -- AC 
-%        + 2 .* wgt           .* ac*ac'...                                            % 5    -- AC
-%        + 2 .* (rho.^2 + 1)  .* sum((wgtm3.*xc_n.*xc_p),3) ...                       %2 & 3 -- XC
-%        - 2 .* rho           .* sum(wgtm3.*SumMat(ac,nLg).*(xc_n+xc_p),3)]./(T.^2);  %4 -- This this the only term which we can't seperate the AC and XC! 
+% Eq 1, the xDF in matrix form:
+%VarHatRho = (T^(-2)).*( (rho_m.^2./2) .* trace(Sigma_X*Sigma_X) + (rho_m.^2./2) .* trace(Sigma_Y*Sigma_Y) ... 
+%             + rho_m.^2 .* trace(Sigma_YX*Sigma_XY) + trace(Sigma_XY*Sigma_XY) + trace(Sigma_X*Sigma_Y) ... 
+%             - rho_m .* trace(Sigma_X*Sigma_XY) - rho_m .* trace(Sigma_YX*Sigma_X) - rho_m .* trace(Sigma_XY*Sigma_Y) - rho_m .* trace(Sigma_Y*Sigma_YX) );  
+% For further validation of Eq1 (matrix form) and Eq2 (vector form), see
+% mis/Eq1vEq2.m
+%
+
 %----MEMORY SAVE----
 clear wgtm3 xc_* ac 
 %-------------------
