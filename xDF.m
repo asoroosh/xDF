@@ -375,7 +375,7 @@ function [xAC,CI,ACOV]=AC_fft(Y,L,varargin)
 %           switched, then the matrix is Ix2(T-1).
 %   CI :    95% Confidence Intervals of AFC.
 %
-%   Stand alone version is in .../xDF/Aux/
+%   Stand alone version is in .../xDF/mis/
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
@@ -445,7 +445,7 @@ function [xC,lidx]=xC_fft(Y,T,varargin)
 %   For only a pair time series, this is slower than crosscorr. Only use 
 %   this function if you have a lager number of time series 
 %
-%   Stand alone version is in .../xDF/Aux/
+%   Stand alone version is in .../xDF/mis/
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
