@@ -5,6 +5,10 @@ function [VarHatRho,Stat]=xDF_octave(ts,T,varargin)
 %   time series. 
 %   - Returns variance, adjusted z-scores and uncorrected p-values
 %
+% **NOTE** 
+% The difference between Octave and Matlab version of the xDF code (xDF.m)
+% is in two utility functions; SumMat & ProdMat where the ind2sub
+% functionality is different between two platform. 
 %
 %%%INPUTS:
 %   ts: Time series as a 2D matrix. 
@@ -174,7 +178,7 @@ fnnf=mfilename; if ~nargin; help(fnnf); return; end; clear fnnf;
     end
 %Crazy, eh?
 wgt     = (nLg:-1:1);
-wgtm3   = reshape(repmat((repmat(wgt,[nn,1])),[nn,1]),[nn,nn,numel(wgt)]); %this is shit, eats all the memory!
+wgtm3   = reshape(repmat((repmat(wgt,[nn,1])),[nn,1]),[nn,nn,numel(wgt)]); %this eats all the memory!
 Tp      = T-1;
 
  VarHatRho = (Tp*(1-rho.^2).^2 ...
@@ -182,13 +186,14 @@ Tp      = T-1;
      -   2.*rho .* sum(wgtm3 .* (SumMat(ac,nLg)    .* (xc_p    + xc_n))  ,3)...         % 5 6 7 8
      +   2      .* sum(wgtm3 .* (ProdMat(ac,nLg)    + (xc_p   .* xc_n))  ,3))./(T^2);   % 3 9 
  
-%this part if from PearCorrVarEst.m; when you assume the xCORR are symm! 
-% wgtm2   = repmat(wgt,[nn,1]);
-% ASAt = [Tp                  .* (1-rho.^2).^2 ...
-%        + rho.^2             .* sum(SumMat((wgtm2.*ac.^2),nLg),3) ...                % 1    -- AC 
-%        + 2 .* wgt           .* ac*ac'...                                            % 5    -- AC
-%        + 2 .* (rho.^2 + 1)  .* sum((wgtm3.*xc_n.*xc_p),3) ...                       %2 & 3 -- XC
-%        - 2 .* rho           .* sum(wgtm3.*SumMat(ac,nLg).*(xc_n+xc_p),3)]./(T.^2);  %4 -- This this the only term which we can't seperate the AC and XC! 
+% Eq 1, the xDF in matrix form:
+%VarHatRho = (T^(-2)).*( (rho_m.^2./2) .* trace(Sigma_X*Sigma_X) + (rho_m.^2./2) .* trace(Sigma_Y*Sigma_Y) ... 
+%             + rho_m.^2 .* trace(Sigma_YX*Sigma_XY) + trace(Sigma_XY*Sigma_XY) + trace(Sigma_X*Sigma_Y) ... 
+%             - rho_m .* trace(Sigma_X*Sigma_XY) - rho_m .* trace(Sigma_YX*Sigma_X) - rho_m .* trace(Sigma_XY*Sigma_Y) - rho_m .* trace(Sigma_Y*Sigma_YX) );  
+% For further validation of Eq1 (matrix form) and Eq2 (vector form), see
+% mis/Eq1vEq2.m
+%
+
 %----MEMORY SAVE----
 clear wgtm3 xc_* ac 
 %-------------------
@@ -382,7 +387,7 @@ function [xAC,CI,ACOV]=AC_fft(Y,L,varargin)
 %           switched, then the matrix is Ix2(T-1).
 %   CI :    95% Confidence Intervals of AFC.
 %
-%   Stand alone version is in .../xDF/Aux/
+%   Stand alone version is in .../xDF/mis/
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
@@ -452,7 +457,7 @@ function [xC,lidx]=xC_fft(Y,T,varargin)
 %   For only a pair time series, this is slower than crosscorr. Only use 
 %   this function if you have a lager number of time series 
 %
-%   Stand alone version is in .../xDF/Aux/
+%   Stand alone version is in .../xDF/mis/
 %_________________________________________________________________________
 % Soroosh Afyouni, University of Oxford, 2017
 % srafyouni@gmail.com
