@@ -199,7 +199,7 @@ rhohat =
 
 ```
 
-Realise that simulating a pair of time series with different autocorrelation with a specified (log-zero) correlation is challenging.  If the original pair of white time series (before "colouring") have correlation rho, they will not have correlation rho after colouring.  This can be corrected with  corrected using Eq. S9 in Section S3.1 as following 
+Realise that simulating a pair of time series with different autocorrelation with a specified (log-zero) correlation is challenging.  If the original pair of white time series (before "colouring") have correlation rho, they will not have correlation rho after colouring.  This can be corrected using Eq. S9 in Section S3.1 as following 
 
 ```
 Sigma_X  = toeplitz(ac_x);
