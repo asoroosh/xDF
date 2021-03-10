@@ -27,12 +27,31 @@ function [t]=corrautocorr(mu,sigR,sigC,ndp,verboseflag)
 %   verboseflag [optional] : if you want to see the warning for non-PSD 
 %                            input matrix [default: 1] 
 %
+%%%%OUTPUTS
+%   t   : Simulated time series
+%
 %%%NOTE
 %   If you need to use a non-PSD matrix for very large simulations use
 %   function "nearestSPD" outside of "corrautocorr" for once. 
+%  
+%   If the autocorrelation structures are different and covariance we are
+%   intending to draw from is high, the simulated time series may have a
+%   underestimated correlation between them. To correct for this you can
+%   use the following
+% 
 %
-%%%OUTPUTS
-%   t   : Simulated time series
+%   AC_ts = AC_fft(ts,T); % estimate the autocorrelations
+%
+%   ac_x  = AC_ts(1,1:T-1);
+%   ac_y  = AC_ts(2,1:T-1);
+% 
+%   Sigma_X  = toeplitz(ac_x);
+%   Sigma_Y  = toeplitz(ac_y);
+%
+%   Kx = chol(Sigma_X);
+%   Ky = chol(Sigma_Y);
+%   rhohat_corrected = rhohat./(trace(Kx*Ky')./T);
+%   
 %
 %%%EXAMPLE
 %   This produces two autocorrelated time series of 1000 length whith 0.6 
@@ -80,8 +99,8 @@ numt  = numel(mu);
 z     = randn(numt,ndp); % X~N(0,1)
 
 
-[CsigR,psdflag] = chol(sigR); %sigR=(chol(abs(sigR)).*sign(sigR))'; %that is stupid!
-if psdflag
+[CsigR,spdflag] = chol(sigR); %chol decomposition while checking for SPD. 
+if spdflag
     if verboseflag; warning('Found the nearest PSD matrix for Corr.'); end;
     sigR  = nearestSPD(sigR); %in case they are not SPD
     CsigR = chol(sigR);
@@ -101,9 +120,9 @@ if size(sigC,3)>1
 else
     %disp('Similar AC structure across time series.')
     %imagesc(sigC)
-    %CsigC = (chol(abs(sigC)).*sign(sigC))'; %that is stupid!
-    [CsigC,psdflag]=chol(sigC);
-    if psdflag
+    %CsigC = (chol(abs(sigC)).*sign(sigC))'; 
+    [CsigC,spdflag]=chol(sigC);
+    if spdflag
         clear CsigC
         sigC  = nearestSPD(sigC); 
         %figure; imagesc(sigC);
