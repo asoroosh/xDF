@@ -199,7 +199,7 @@ rhohat =
 
 ```
 
-It is important to note that when two time series are highly correlated _and_ they have different autocorrelation structure, the sample correlation is underestimated. Importantly, this shouldn't be confused with the fact that the sample correlations are approximately unbiased even if the time series are autocorrelated. This could be corrected using Eq. S9 in Section S3.1 as following
+Realise that simulating a pair of time series with different autocorrelation with a specified (log-zero) correlation is challenging.  If the original pair of white time series (before "colouring") have correlation rho, they will not have correlation rho after colouring.  This can be corrected with  corrected using Eq. S9 in Section S3.1 as following 
 
 ```
 Sigma_X  = toeplitz(ac_x);
@@ -213,4 +213,7 @@ rhohat_corrected =
 
   0.3888
 ```
+
+This disconnect between original and induced correlation is a simulation artifact. It remains the case that Pearson's sample correlation is approximately unbiased for the lag-zero correlation even if the time series are autocorrelated.
+
 Obviously, these are just quick examples; more accurate estimates should be achieved via hundreds of iterations.
