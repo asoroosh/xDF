@@ -1,4 +1,5 @@
-[![DOI](https://zenodo.org/badge/75324979.svg)](https://zenodo.org/badge/latestdoi/75324979)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2550181.svg)](https://doi.org/10.5281/zenodo.2550181)
+
 
 # Effective Degrees of Freedom of the Pearson's Correlation Coefficient under Serial Correlation
 
